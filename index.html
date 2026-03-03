@@ -14,85 +14,68 @@ html,body{height:100%;margin:0;background:#dcdcdc;}
 img{display:block;max-width:none;height:auto;}
 
 /* =========================================================
-   ★ ここだけ触ればOK（全部の「移動/大きさ/高さ」調整）
-   ---------------------------------------------------------
-   ■ left / top / right / bottom ＝ 位置（左右/上下）
-   ■ w / h ＝ 大きさ（幅/高さ）
-   ■ x / y ＝ パーツ内の位置（画像の中でどこに置くか）
-   ■ scale ＝ 全体を拡大縮小（1.0が標準）
+   ここだけ触れば全部調整できる（初期値：スクショ基準で整えた）
 ========================================================= */
 :root{
-  /* =========================
-     [A] 検索UI（searchbox.png）
-  ========================= */
-  --search-left:180px;     /* ←検索UIを右へ(+) 左へ(-) */
-  --search-top:14px;       /* ←検索UIを下へ(+) 上へ(-) */
-  --search-w:1060px;        /* ←検索UIの横幅（大きさ） */
-  --search-h:72px;         /* ←検索UIの高さ（見た目） */
-  --search-scale:1.00;     /* ←検索UIを全体拡大縮小（1.05とか） */
+  /* [A] 検索UI（小さめ＆上中央寄り） */
+  --search-left:280px;     /* 右へ+ / 左へ- */
+  --search-top:10px;       /* 下へ+ / 上へ- */
+  --search-w:520px;        /* 大きくしたいならここ */
+  --search-h:58px;
+  --search-scale:1.00;
 
-  /* 検索入力欄（input）を「画像の中のどこに置くか」 */
-  --input-x:0.29;          /* ←0〜1：左からの比率。0.30=30% */
-  --input-y:0.52;          /* ←0〜1：上からの比率。0.50=真ん中 */
-  --input-w:0.56;          /* ←0〜1：検索枠の中での横幅比率 */
-  --input-h:44px;          /* ←inputの高さ（文字の見え方も変わる） */
-  --input-font:18px;       /* ←文字サイズ */
+  /* 入力欄（検索枠の中の位置） */
+  --input-x:0.30;
+  --input-y:0.52;
+  --input-w:0.56;
+  --input-h:36px;
+  --input-font:16px;
 
-  /* =========================
-     [B] 右パネル（panel-bg.png）
-  ========================= */
-  --panel-right:20px;      /* ←右パネルを左へ(+) 右へ(-) */
-  --panel-top:90px;        /* ←右パネルを下へ(+) 上へ(-) */
-  --panel-w:300px;         /* ←右パネルの横幅 */
-  --panel-h:520px;         /* ←右パネルの高さ（見た目） */
-  --panel-scale:1.00;      /* ←右パネルを全体拡大縮小 */
+  /* [B] 右パネル（上すぎたので少し下げる＆サイズも控えめ） */
+  --panel-right:18px;      /* 左へ+ / 右へ- */
+  --panel-top:90px;        /* 下へ+ / 上へ- */
+  --panel-w:260px;
+  --panel-h:470px;
+  --panel-scale:1.00;
 
-  /* パネル中の「チェック+文字」の開始位置 */
-  --cat-left:26px;         /* ←中身を右へ(+) 左へ(-) */
-  --cat-top:86px;          /* ←中身を下へ(+) 上へ(-) */
-  --cat-gap:14px;          /* ←行間（大きいほど離れる） */
-  --cat-font:18px;         /* ←カテゴリ文字サイズ */
+  /* パネル中身（背景と文字/チェックのズレはここ） */
+  --cat-left:22px;         /* 中身を右へ+ / 左へ- */
+  --cat-top:78px;          /* 中身を下へ+ / 上へ- */
+  --cat-gap:12px;
+  --cat-font:16px;
 
-  /* チェックボックスの大きさ（check-on/off） */
-  --check-size:26px;       /* ←チェックのサイズ */
+  /* チェックボックス */
+  --check-size:22px;
 
-  /* =========================
-     [C] 左下ロゴ（ROGO.png）
-  ========================= */
-  --logo-left:20px;        /* ←ロゴを右へ(+) 左へ(-) */
-  --logo-bottom:20px;      /* ←ロゴを上へ(+) 下へ(-) */
-  --logo-w:150px;          /* ←ロゴの横幅 */
-  --logo-scale:1.00;       /* ←ロゴを全体拡大縮小 */
+  /* [C] 左下ロゴ */
+  --logo-left:16px;
+  --logo-bottom:16px;
+  --logo-w:120px;
+  --logo-scale:1.00;
 
-  /* =========================
-     [D] ピン（pin.png）
-  ========================= */
-  --pin-w:10px;            /* ←ピンの横幅（大きさ） */
-  --pin-scale:0.1;        /* ←ピン全体拡大縮小（微調整用） */
+  /* [D] ピン（スクショの巨大化対策：小さめ固定） */
+  --pin-w:26px;
+  --pin-scale:1.00;
+  --pin-label-top:6px;
+  --pin-font:10px;
 
-  /* ピンの「数字」の位置とサイズ */
-  --pin-label-top:8px;     /* ←数字を下へ(+) 上へ(-) */
-  --pin-font:12px;         /* ←数字サイズ */
-
-  /* ピンが「刺さる点」の微調整（最後に使う） */
-  --pin-anchor-x:0px;      /* ←刺さる点を右へ(+) 左へ(-) */
-  --pin-anchor-y:0px;      /* ←刺さる点を下へ(+) 上へ(-) */
+  /* ピン刺さる点の微調整（ズレたらここを最後に触る） */
+  --pin-anchor-x:0px;
+  --pin-anchor-y:0px;
 }
 
 /* =========================
-   検索UI（背景はdiv化）
+   検索UI
 ========================= */
 .search-ui{
   position:fixed;
   left:var(--search-left);
   top:var(--search-top);
   z-index:9999;
-
   width:var(--search-w);
   height:var(--search-h);
-
   transform: scale(var(--search-scale));
-  transform-origin: left top; /* 拡大縮小しても左上基準でズレにくい */
+  transform-origin:left top;
 }
 .search-ui .search-bg{
   position:absolute;
@@ -102,36 +85,31 @@ img{display:block;max-width:none;height:auto;}
 }
 .search-ui input{
   position:absolute;
-
   left: calc(var(--search-w) * var(--input-x));
   top:  calc(var(--search-h) * var(--input-y));
   transform: translateY(-50%);
-
   width: calc(var(--search-w) * var(--input-w));
   height: var(--input-h);
-
   border:none;
   outline:none;
   background:transparent;
   font-size:var(--input-font);
-  line-height: var(--input-h);
+  line-height:var(--input-h);
   padding:0;
 }
 
 /* =========================
-   右パネル（背景はdiv化）
+   右パネル
 ========================= */
 .category-panel{
   position:fixed;
   right:var(--panel-right);
   top:var(--panel-top);
   z-index:9998;
-
   width:var(--panel-w);
   height:var(--panel-h);
-
   transform: scale(var(--panel-scale));
-  transform-origin: right top;
+  transform-origin:right top;
 }
 .category-panel .panel-bg{
   position:absolute;
@@ -146,8 +124,6 @@ img{display:block;max-width:none;height:auto;}
   font-size:var(--cat-font);
   color:#111;
 }
-
-/* 行の高さを固定してズレを無くす */
 .cat-row{
   display:flex;
   align-items:center;
@@ -176,14 +152,10 @@ img{display:block;max-width:none;height:auto;}
   left:var(--logo-left);
   bottom:var(--logo-bottom);
   z-index:9997;
-
   transform: scale(var(--logo-scale));
-  transform-origin: left bottom;
+  transform-origin:left bottom;
 }
-.fixed-logo img{
-  width:var(--logo-w);
-  height:auto;
-}
+.fixed-logo img{ width:var(--logo-w); }
 
 /* =========================
    ピン
@@ -192,11 +164,7 @@ img{display:block;max-width:none;height:auto;}
 
 .pinwrap{
   position:relative;
-
-  /* ピンの見た目サイズ */
   width: calc(var(--pin-w) * var(--pin-scale));
-
-  /* “刺さる点” の微調整込み */
   transform: translate(
     calc(-50% + var(--pin-anchor-x)),
     calc(-100% + var(--pin-anchor-y))
@@ -205,7 +173,6 @@ img{display:block;max-width:none;height:auto;}
 .pinwrap img{
   width: calc(var(--pin-w) * var(--pin-scale));
   height:auto;
-  display:block;
 }
 .pinlabel{
   position:absolute;
@@ -213,7 +180,7 @@ img{display:block;max-width:none;height:auto;}
   left:50%;
   transform:translateX(-50%);
   color:#fff;
-  font-weight:bold;
+  font-weight:700;
   text-shadow:0 2px 6px #000;
   font-size:var(--pin-font);
   line-height:1;
@@ -242,32 +209,24 @@ img{display:block;max-width:none;height:auto;}
 <div id="map"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 <script>
 const imgWidth = 1457;
 const imgHeight = 2048;
 
 const map = L.map('map', {
   crs: L.CRS.Simple,
-  minZoom:-2,
-  maxZoom:4
+  minZoom: -2,
+  maxZoom: 4
 });
 
 const bounds = [[0,0],[imgHeight,imgWidth]];
 L.imageOverlay("./map.png", bounds).addTo(map);
-map.fitBounds(bounds);
 
-/* ===== カテゴリ ===== */
-const categories = [
-  "修理台",
-  "受注場所",
-  "武器クラフト",
-  "犯罪クラフト",
-  "薬素材",
-  "精製所",
-  "売人場所"
-];
+/* 余白つきでフィット（スクショみたいに小さくなりすぎにくい） */
+map.fitBounds(bounds, { padding: [40, 40] });
 
+/* カテゴリ */
+const categories = ["修理台","受注場所","武器クラフト","犯罪クラフト","薬素材","精製所","売人場所"];
 const layers = {};
 const catItems = document.getElementById("catItems");
 
@@ -297,17 +256,15 @@ categories.forEach(cat=>{
   };
 });
 
-/* ===== ピン =====
-   iconSize/iconAnchor を “実サイズ” に合わせる（当たり判定/位置ズレ防止）
-*/
+/* ピン */
 function getVarNumber(name, fallback){
   const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
   const n = parseFloat(v);
   return Number.isFinite(n) ? n : fallback;
 }
 function pinIcon(number){
-  const pinW = getVarNumber('--pin-w', 38) * getVarNumber('--pin-scale', 1.0);
-  const pinH = pinW * 1.25; // pin.pngが縦長ならこの倍率を調整（1.15〜1.4）
+  const w = getVarNumber('--pin-w', 26) * getVarNumber('--pin-scale', 1.0);
+  const h = w * 1.25; // pin.pngが縦長なので少しだけ縦長に当たり判定を取る
 
   return L.divIcon({
     className:"",
@@ -317,25 +274,21 @@ function pinIcon(number){
         <div class="pinlabel">${number||""}</div>
       </div>
     `,
-    iconSize:[pinW, pinH],
-    iconAnchor:[pinW/2, pinH]
+    iconSize:[w, h],
+    iconAnchor:[w/2, h]
   });
 }
 
-/* ===== データ読み込み ===== */
+/* データ */
 fetch("./points.json")
   .then(r=>r.json())
   .then(points=>{
     points.forEach(p=>{
-      L.marker([p.y,p.x],{
-        icon:pinIcon(p.number||p.title)
-      }).addTo(layers[p.category||"修理台"]);
+      const n = (p.number || p.title || "");
+      L.marker([p.y,p.x], { icon: pinIcon(n) })
+        .addTo(layers[p.category||"修理台"]);
     });
   });
 </script>
 </body>
 </html>
-
-
-
-
