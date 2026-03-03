@@ -10,30 +10,51 @@
 <style>
 html,body{height:100%;margin:0;}
 #map{height:100%;width:100%;}
+
 .searchbox{
-  position:absolute;top:10px;left:10px;z-index:9999;
-  background:rgba(255,255,255,0.95);padding:10px;border-radius:10px;
-  width:min(360px,calc(100vw - 20px));
-  box-shadow:0 6px 20px rgba(0,0,0,0.2);
+  position:absolute;
+  top:10px;
+  left:10px;
+  z-index:9999;
+  background:rgba(255,255,255,0.95);
+  padding:12px;
+  border-radius:12px;
+  width:320px;
+  box-shadow:0 8px 25px rgba(0,0,0,0.25);
   font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
 }
+
 .searchbox input{
-  width:100%;font-size:14px;padding:8px 10px;border:1px solid #ccc;border-radius:8px;box-sizing:border-box;
+  width:100%;
+  font-size:14px;
+  padding:8px 10px;
+  border:1px solid #ccc;
+  border-radius:8px;
 }
-.searchbox .hint{font-size:12px;color:#555;margin-top:6px;}
-.results{margin-top:8px;max-height:220px;overflow:auto;border-top:1px solid #e5e5e5;padding-top:8px;display:none;}
-.result-item{padding:8px 6px;border-radius:8px;cursor:pointer;}
-.result-item:hover{background:#f2f2f2;}
-.result-title{font-weight:600;font-size:13px;}
-.result-meta{font-size:12px;color:#666;}
-.badge{display:inline-block;padding:2px 6px;border-radius:999px;background:#eee;font-size:11px;margin-left:6px;}
+
+.results{
+  margin-top:8px;
+  max-height:220px;
+  overflow:auto;
+  display:none;
+}
+
+.result-item{
+  padding:6px;
+  cursor:pointer;
+  border-radius:6px;
+}
+
+.result-item:hover{
+  background:#f2f2f2;
+}
 </style>
 </head>
 
 <body>
+
 <div class="searchbox">
-  <input id="q" type="text" placeholder="検索（例：修理台 / 売人 / 精製）" />
-  <div class="hint">タイトル・メモ・カテゴリで検索できます</div>
+  <input id="q" type="text" placeholder="番号検索 (例: 4020)" />
   <div id="results" class="results"></div>
 </div>
 
@@ -42,7 +63,7 @@ html,body{height:100%;margin:0;}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-// 画像サイズ（あなたの map.png）
+
 const imgWidth = 1457;
 const imgHeight = 2048;
 
@@ -56,11 +77,9 @@ const bounds = [[0,0],[imgHeight,imgWidth]];
 L.imageOverlay('./map.png', bounds).addTo(map);
 map.fitBounds(bounds);
 
-// カテゴリ切替（右側）
 const layerControl = L.control.layers(null,null,{collapsed:false}).addTo(map);
 const layers = {};
 
-// 右側に表示したいカテゴリ一覧（ピンが0個でも出す）
 const categories = [
   "修理台",
   "受注場所",
@@ -71,124 +90,110 @@ const categories = [
   "売人場所"
 ];
 
-// 空レイヤーを先に作って登録（=右側に最初から表示）
-categories.forEach(cat => {
+categories.forEach(cat=>{
   layers[cat] = L.layerGroup().addTo(map);
-  layerControl.addOverlay(layers[cat], cat);
+  layerControl.addOverlay(layers[cat],cat);
 });
 
-// ===== アイコン（色＋絵文字） =====
-function makePinIcon(color, emoji){
-  const safeEmoji = (emoji || "•");
+function makePinIcon(color, emoji, number){
+  const id = color.replace("#","");
+
   const svg = `
-  <svg xmlns="http://www.w3.org/2000/svg" width="36" height="50" viewBox="0 0 36 50">
-    <path d="M18 49S34 34 34 19A16 16 0 1 0 2 19c0 15 16 30 16 30z" fill="${color}"/>
-    <circle cx="18" cy="19" r="7.6" fill="white" opacity="0.96"/>
-    <text x="18" y="22.5" text-anchor="middle" font-size="12.5"
-          font-family="system-ui,-apple-system,Segoe UI,Apple Color Emoji,Noto Color Emoji,sans-serif">
-      ${safeEmoji}
+  <svg xmlns="http://www.w3.org/2000/svg" width="52" height="70" viewBox="0 0 52 70">
+    <defs>
+      <radialGradient id="grad-${id}" cx="30%" cy="25%" r="80%">
+        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.6"/>
+        <stop offset="40%" stop-color="${color}" stop-opacity="1"/>
+        <stop offset="100%" stop-color="#000000" stop-opacity="0.35"/>
+      </radialGradient>
+
+      <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+        <feDropShadow dx="0" dy="6" stdDeviation="5" flood-opacity="0.45"/>
+      </filter>
+    </defs>
+
+    <path d="M26 68S50 46 50 25A24 24 0 1 0 2 25c0 21 24 43 24 43z"
+          fill="url(#grad-${id})"
+          filter="url(#shadow)"/>
+
+    <ellipse cx="22" cy="18" rx="12" ry="8" fill="white" opacity="0.25"/>
+    <circle cx="26" cy="27" r="11" fill="white"/>
+
+    <text x="26" y="31" text-anchor="middle" font-size="15">
+      ${emoji}
+    </text>
+
+    <text x="26" y="58" text-anchor="middle" font-size="14" font-weight="bold" fill="white">
+      ${number}
     </text>
   </svg>`;
+
   return L.divIcon({
     className:"",
     html: svg,
-    iconSize:[36,50],
-    iconAnchor:[18,49],
-    popupAnchor:[0,-48]
+    iconSize:[52,70],
+    iconAnchor:[26,68],
+    popupAnchor:[0,-65]
   });
 }
 
-// あなた指定の色
 const iconByCategory = {
-  "修理台": makePinIcon("#FF3B30", "🛠"),        // 赤
-  "受注場所": makePinIcon("#000000", "📦"),      // 黒
-  "武器クラフト": makePinIcon("#FF9500", "🔫"),  // オレンジ
-  "犯罪クラフト": makePinIcon("#FF7A00", "🎭"),  // オレンジ
-  "薬素材": makePinIcon("#34C759", "🌿"),        // みどり
-  "精製所": makePinIcon("#FF2D55", "🏭"),        // ピンク
-  "売人場所": makePinIcon("#AF52DE", "💰"),      // 紫
-  "未分類": makePinIcon("#8E8E93", "•")
+  "修理台": "#FF3B30",
+  "受注場所": "#000000",
+  "武器クラフト": "#FF9500",
+  "犯罪クラフト": "#FF7A00",
+  "薬素材": "#34C759",
+  "精製所": "#FF2D55",
+  "売人場所": "#AF52DE"
 };
 
-function getIcon(cat){
-  return iconByCategory[cat] || iconByCategory["未分類"];
-}
-
-// 検索用
 const searchable = [];
 
-function escapeHtml(str) {
-  return String(str).replace(/[&<>"']/g, s => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  }[s]));
-}
-
 function addPoint(p){
-  const cat = p.category || "未分類";
-  const title = p.title || "無題";
-  const note = p.note || "";
+  const cat = p.category;
+  const color = iconByCategory[cat] || "#8E8E93";
 
-  // ✅ ここ重要：勝手に新カテゴリを作らない
-  // categories に無いカテゴリは「未分類」扱いにする
-  const safeCat = (layers[cat] ? cat : "未分類");
+  const marker = L.marker([p.y, p.x], {
+    icon: makePinIcon(color,"●",p.title)
+  }).bindPopup(`<b>${p.title}</b>`);
 
-  const marker = L.marker([p.y, p.x], { icon: getIcon(safeCat) })
-    .bindPopup(`<b>${escapeHtml(title)}</b><br>${escapeHtml(note)}<br><span class="badge">${escapeHtml(safeCat)}</span>`);
+  marker.addTo(layers[cat]);
 
-  marker.addTo(layers[safeCat]);
-
-  const text = (safeCat + " " + title + " " + note).toLowerCase();
-  searchable.push({ cat: safeCat, title, note, x:p.x, y:p.y, marker, text });
+  searchable.push({
+    title:p.title,
+    marker:marker
+  });
 }
 
 fetch('./points.json')
   .then(r=>r.json())
   .then(points=>points.forEach(addPoint));
 
-// クリックで座標表示
-map.on('click', (e) => {
-  const x = Math.round(e.latlng.lng);
-  const y = Math.round(e.latlng.lat);
-  L.popup().setLatLng(e.latlng).setContent(`x: ${x}<br>y: ${y}`).openOn(map);
-});
-
-// 検索UI
 const input = document.getElementById("q");
 const results = document.getElementById("results");
 
-input.addEventListener("input", () => {
-  const q = input.value.trim().toLowerCase();
+input.addEventListener("input",()=>{
+  const q = input.value.trim();
+  results.innerHTML="";
   if(!q){
-    results.style.display = "none";
-    results.innerHTML = "";
+    results.style.display="none";
     return;
   }
 
-  const hits = searchable.filter(p => p.text.includes(q)).slice(0, 20);
+  const hits = searchable.filter(p=>p.title.includes(q));
+  results.style.display="block";
 
-  results.innerHTML = "";
-  results.style.display = "block";
-
-  if(hits.length === 0){
-    results.innerHTML = `<div class="result-item"><div class="result-title">該当なし</div></div>`;
-    return;
-  }
-
-  hits.forEach(p => {
-    const el = document.createElement("div");
-    el.className = "result-item";
-    el.innerHTML = `
-      <div class="result-title">${escapeHtml(p.title)}<span class="badge">${escapeHtml(p.cat)}</span></div>
-      <div class="result-meta">${escapeHtml(p.note || "")}</div>
-    `;
-    el.onclick = () => {
-      map.setView([p.y, p.x], Math.max(map.getZoom(), 1));
+  hits.forEach(p=>{
+    const div=document.createElement("div");
+    div.className="result-item";
+    div.textContent=p.title;
+    div.onclick=()=>{
       p.marker.openPopup();
-      if(layers[p.cat] && !map.hasLayer(layers[p.cat])) layers[p.cat].addTo(map);
     };
-    results.appendChild(el);
+    results.appendChild(div);
   });
 });
+
 </script>
 </body>
 </html>
