@@ -8,60 +8,25 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
 <style>
-html,body{
-  height:100%;
-  margin:0;
-  background:#0a0f16;
-}
+html,body{height:100%;margin:0;background:#0f141a;}
+#map{height:100%;width:100%;}
 
-#map{
-  height:100%;
-  width:100%;
-}
-
-/* ネオン検索UI */
 .searchbox{
-  position:absolute;
-  top:12px;
-  left:12px;
-  z-index:9999;
-  width:320px;
-  padding:14px;
-  border-radius:14px;
-  background:rgba(10,15,22,0.85);
-  border:1px solid rgba(0,255,255,0.25);
-  box-shadow:0 0 18px rgba(0,255,255,0.25);
-  color:#7ffcff;
+  position:absolute; top:12px; left:12px; z-index:9999;
+  width:min(340px, calc(100vw - 20px));
+  padding:12px;
+  border-radius:12px;
+  background:rgba(255,255,255,0.95);
+  box-shadow:0 6px 20px rgba(0,0,0,0.25);
   font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
-  backdrop-filter:blur(6px);
 }
-
 .searchbox input{
-  width:100%;
-  padding:9px;
-  border-radius:10px;
-  border:1px solid rgba(0,255,255,0.25);
-  background:#111;
-  color:#00ffff;
-  outline:none;
+  width:100%; font-size:14px; padding:8px 10px;
+  border:1px solid #ccc; border-radius:8px; outline:none;
 }
-
-.results{
-  margin-top:8px;
-  max-height:220px;
-  overflow:auto;
-  display:none;
-}
-
-.result-item{
-  padding:6px;
-  cursor:pointer;
-  border-radius:8px;
-}
-
-.result-item:hover{
-  background:#111;
-}
+.results{ margin-top:8px; max-height:220px; overflow:auto; display:none; }
+.result-item{ padding:6px; cursor:pointer; border-radius:8px; }
+.result-item:hover{ background:#f2f2f2; }
 </style>
 </head>
 
@@ -75,97 +40,58 @@ html,body{
 <div id="map"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 <script>
 
-// マップ画像サイズ
 const imgWidth = 1457;
 const imgHeight = 2048;
 
-const map = L.map('map',{
-  crs: L.CRS.Simple,
-  minZoom: -2,
-  maxZoom: 4
-});
-
+const map = L.map('map',{ crs: L.CRS.Simple, minZoom: -2, maxZoom: 4 });
 const bounds = [[0,0],[imgHeight,imgWidth]];
 L.imageOverlay('./map.png', bounds).addTo(map);
 map.fitBounds(bounds);
 
-// カテゴリ固定表示
+// 右側カテゴリ固定
 const layerControl = L.control.layers(null,null,{collapsed:false}).addTo(map);
 const layers = {};
-
-const categories = [
-  "修理台",
-  "受注場所",
-  "武器クラフト",
-  "犯罪クラフト",
-  "薬素材",
-  "精製所",
-  "売人場所"
-];
-
+const categories = ["修理台","受注場所","武器クラフト","犯罪クラフト","薬素材","精製所","売人場所"];
 categories.forEach(cat=>{
   layers[cat] = L.layerGroup().addTo(map);
-  layerControl.addOverlay(layers[cat],cat);
+  layerControl.addOverlay(layers[cat], cat);
 });
 
-// ネオンカラー
-const neonColors = {
-  "修理台": "#ff003c",
-  "受注場所": "#00ffff",
-  "武器クラフト": "#ff8c00",
-  "犯罪クラフト": "#ff00ff",
-  "薬素材": "#00ff66",
-  "精製所": "#ff1493",
-  "売人場所": "#8a2be2"
+// カテゴリ色
+const colors = {
+  "修理台": "#FF3B30",
+  "受注場所": "#000000",
+  "武器クラフト": "#FF9500",
+  "犯罪クラフト": "#FF7A00",
+  "薬素材": "#34C759",
+  "精製所": "#FF2D55",
+  "売人場所": "#AF52DE"
 };
 
-// ネオンピン（3枚目系・控えめ発光）
-function makeNeonPin(color, number){
-
-  const id = color.replace("#","");
-
+// 🔹 最初の涙型ピン + 黒フチ
+function makePin(color, number){
   const svg = `
-  <svg xmlns="http://www.w3.org/2000/svg" width="54" height="74" viewBox="0 0 54 74">
-    <defs>
-      <filter id="glow-${id}" x="-40%" y="-40%" width="180%" height="180%">
-        <feGaussianBlur stdDeviation="3" result="blur"/>
-        <feMerge>
-          <feMergeNode in="blur"/>
-          <feMergeNode in="SourceGraphic"/>
-        </feMerge>
-      </filter>
-    </defs>
-
-    <!-- 外枠発光 -->
-    <path d="M27 72S48 53 48 32A21 21 0 1 0 6 32c0 21 21 40 21 40z"
-          fill="none"
-          stroke="${color}"
-          stroke-width="3"
-          filter="url(#glow-${id})"/>
-
-    <!-- 本体 -->
-    <path d="M27 70S46 52 46 32A19 19 0 1 0 8 32c0 20 19 38 19 38z"
-          fill="#0a0f16"
-          stroke="${color}"
+  <svg xmlns="http://www.w3.org/2000/svg" width="44" height="60" viewBox="0 0 44 60">
+    <!-- 本体（黒フチ付き） -->
+    <path d="M22 58S40 40 40 22A18 18 0 1 0 4 22c0 18 18 36 18 36z"
+          fill="${color}"
+          stroke="#000000"
           stroke-width="2"/>
 
-    <!-- 中央円 -->
-    <circle cx="27" cy="30" r="11"
-            fill="#000"
-            stroke="${color}"
-            stroke-width="2"
-            filter="url(#glow-${id})"/>
+    <!-- 中央白丸 -->
+    <circle cx="22" cy="23" r="9"
+            fill="white"
+            stroke="#000"
+            stroke-width="1"/>
 
     <!-- 番号 -->
-    <text x="27" y="35"
+    <text x="22" y="27"
           text-anchor="middle"
-          font-size="13"
+          font-size="11"
           font-weight="bold"
-          fill="${color}"
-          style="paint-order:stroke; stroke: rgba(0,0,0,0.6); stroke-width:3;">
+          fill="#000">
       ${number}
     </text>
   </svg>`;
@@ -173,9 +99,9 @@ function makeNeonPin(color, number){
   return L.divIcon({
     className:"",
     html: svg,
-    iconSize:[54,74],
-    iconAnchor:[27,70],
-    popupAnchor:[0,-55]
+    iconSize:[44,60],
+    iconAnchor:[22,58],
+    popupAnchor:[0,-50]
   });
 }
 
@@ -183,10 +109,10 @@ const searchable = [];
 
 function addPoint(p){
   const cat = p.category;
-  const color = neonColors[cat] || "#00ffff";
+  const color = colors[cat] || "#8E8E93";
 
   const marker = L.marker([p.y, p.x], {
-    icon: makeNeonPin(color, p.title)
+    icon: makePin(color, p.title)
   }).bindPopup(`<b>${p.title}</b>`);
 
   marker.addTo(layers[cat]);
@@ -201,7 +127,7 @@ fetch('./points.json')
   .then(r=>r.json())
   .then(points=>points.forEach(addPoint));
 
-// 検索機能
+// 検索
 const input = document.getElementById("q");
 const results = document.getElementById("results");
 
@@ -220,9 +146,7 @@ input.addEventListener("input",()=>{
     const div=document.createElement("div");
     div.className="result-item";
     div.textContent=p.title;
-    div.onclick=()=>{
-      p.marker.openPopup();
-    };
+    div.onclick=()=>{ p.marker.openPopup(); };
     results.appendChild(div);
   });
 });
