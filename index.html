@@ -13,62 +13,86 @@ html,body{height:100%;margin:0;background:#dcdcdc;}
 *{box-sizing:border-box;}
 img{display:block;max-width:none;height:auto;}
 
-/* =========================
-   調整用（まずここだけ触る）
-========================= */
+/* =========================================================
+   ★ ここだけ触ればOK（全部の「移動/大きさ/高さ」調整）
+   ---------------------------------------------------------
+   ■ left / top / right / bottom ＝ 位置（左右/上下）
+   ■ w / h ＝ 大きさ（幅/高さ）
+   ■ x / y ＝ パーツ内の位置（画像の中でどこに置くか）
+   ■ scale ＝ 全体を拡大縮小（1.0が標準）
+========================================================= */
 :root{
-  /* 検索UI：スクショだと小さすぎ → 大きく */
-  --search-left:180px;
-  --search-top:14px;
-  --search-w:1060px;      /* ←大きく */
-  --search-h:372px;       /* ←大きく */
+  /* =========================
+     [A] 検索UI（searchbox.png）
+  ========================= */
+  --search-left:180px;     /* ←検索UIを右へ(+) 左へ(-) */
+  --search-top:14px;       /* ←検索UIを下へ(+) 上へ(-) */
+  --search-w:760px;        /* ←検索UIの横幅（大きさ） */
+  --search-h:72px;         /* ←検索UIの高さ（見た目） */
+  --search-scale:1.00;     /* ←検索UIを全体拡大縮小（1.05とか） */
 
-  /* input：比率で配置（画像サイズ変えてもズレにくい） */
-  --input-x:0.29;        /* 左からの比率 */
-  --input-y:0.52;        /* 上からの比率 */
-  --input-w:0.56;        /* 幅の比率 */
-  --input-h:44px;
+  /* 検索入力欄（input）を「画像の中のどこに置くか」 */
+  --input-x:0.29;          /* ←0〜1：左からの比率。0.30=30% */
+  --input-y:0.52;          /* ←0〜1：上からの比率。0.50=真ん中 */
+  --input-w:0.56;          /* ←0〜1：検索枠の中での横幅比率 */
+  --input-h:44px;          /* ←inputの高さ（文字の見え方も変わる） */
+  --input-font:18px;       /* ←文字サイズ */
 
-  /* 右パネル */
-  --panel-right:20px;
-  --panel-top:90px;      /* ←スクショだと上の巨大ピンと干渉してるので下げる */
-  --panel-w:300px;
-  --panel-h:520px;
+  /* =========================
+     [B] 右パネル（panel-bg.png）
+  ========================= */
+  --panel-right:20px;      /* ←右パネルを左へ(+) 右へ(-) */
+  --panel-top:90px;        /* ←右パネルを下へ(+) 上へ(-) */
+  --panel-w:300px;         /* ←右パネルの横幅 */
+  --panel-h:520px;         /* ←右パネルの高さ（見た目） */
+  --panel-scale:1.00;      /* ←右パネルを全体拡大縮小 */
 
-  /* パネル中身：スクショでズレてるので調整 */
-  --cat-left:26px;
-  --cat-top:86px;
-  --cat-gap:14px;
-  --cat-font:18px;
+  /* パネル中の「チェック+文字」の開始位置 */
+  --cat-left:26px;         /* ←中身を右へ(+) 左へ(-) */
+  --cat-top:86px;          /* ←中身を下へ(+) 上へ(-) */
+  --cat-gap:14px;          /* ←行間（大きいほど離れる） */
+  --cat-font:18px;         /* ←カテゴリ文字サイズ */
 
-  /* チェック：固定サイズにしてズレ消す */
-  --check-size:26px;
+  /* チェックボックスの大きさ（check-on/off） */
+  --check-size:26px;       /* ←チェックのサイズ */
 
-  /* ロゴ */
-  --logo-left:20px;
-  --logo-bottom:20px;
-  --logo-w:150px;
+  /* =========================
+     [C] 左下ロゴ（ROGO.png）
+  ========================= */
+  --logo-left:20px;        /* ←ロゴを右へ(+) 左へ(-) */
+  --logo-bottom:20px;      /* ←ロゴを上へ(+) 下へ(-) */
+  --logo-w:150px;          /* ←ロゴの横幅 */
+  --logo-scale:1.00;       /* ←ロゴを全体拡大縮小 */
 
-  /* ピン：デカすぎ → 小さく */
-  --pin-w:18px;          /* ←ここが最重要 */
-  --pin-label-top:8px;
-  --pin-font:12px;
+  /* =========================
+     [D] ピン（pin.png）
+  ========================= */
+  --pin-w:38px;            /* ←ピンの横幅（大きさ） */
+  --pin-scale:1.00;        /* ←ピン全体拡大縮小（微調整用） */
 
-  /* ピンの刺さる点 微調整（必要なら） */
-  --pin-anchor-x:0px;
-  --pin-anchor-y:0px;
+  /* ピンの「数字」の位置とサイズ */
+  --pin-label-top:8px;     /* ←数字を下へ(+) 上へ(-) */
+  --pin-font:12px;         /* ←数字サイズ */
+
+  /* ピンが「刺さる点」の微調整（最後に使う） */
+  --pin-anchor-x:0px;      /* ←刺さる点を右へ(+) 左へ(-) */
+  --pin-anchor-y:0px;      /* ←刺さる点を下へ(+) 上へ(-) */
 }
 
 /* =========================
-   検索UI：imgタグを背景化（潰れ/ズレ防止）
+   検索UI（背景はdiv化）
 ========================= */
 .search-ui{
   position:fixed;
   left:var(--search-left);
   top:var(--search-top);
   z-index:9999;
+
   width:var(--search-w);
   height:var(--search-h);
+
+  transform: scale(var(--search-scale));
+  transform-origin: left top; /* 拡大縮小しても左上基準でズレにくい */
 }
 .search-ui .search-bg{
   position:absolute;
@@ -78,30 +102,36 @@ img{display:block;max-width:none;height:auto;}
 }
 .search-ui input{
   position:absolute;
+
   left: calc(var(--search-w) * var(--input-x));
   top:  calc(var(--search-h) * var(--input-y));
   transform: translateY(-50%);
+
   width: calc(var(--search-w) * var(--input-w));
   height: var(--input-h);
 
   border:none;
   outline:none;
   background:transparent;
-  font-size:18px;
+  font-size:var(--input-font);
   line-height: var(--input-h);
   padding:0;
 }
 
 /* =========================
-   パネル：背景をdiv化＋中身の座標を変数で管理
+   右パネル（背景はdiv化）
 ========================= */
 .category-panel{
   position:fixed;
   right:var(--panel-right);
   top:var(--panel-top);
   z-index:9998;
+
   width:var(--panel-w);
   height:var(--panel-h);
+
+  transform: scale(var(--panel-scale));
+  transform-origin: right top;
 }
 .category-panel .panel-bg{
   position:absolute;
@@ -117,7 +147,7 @@ img{display:block;max-width:none;height:auto;}
   color:#111;
 }
 
-/* 行の高さを固定して“ズレ”を無くす */
+/* 行の高さを固定してズレを無くす */
 .cat-row{
   display:flex;
   align-items:center;
@@ -128,7 +158,7 @@ img{display:block;max-width:none;height:auto;}
   height: calc(var(--check-size) + 6px);
 }
 
-/* ✅ チェックボックスはimgじゃなくdiv背景にする（これでon/offのズレが消える） */
+/* ✅ チェックはdiv背景で切替（on/offでズレない） */
 .chk{
   width:var(--check-size);
   height:var(--check-size);
@@ -146,6 +176,9 @@ img{display:block;max-width:none;height:auto;}
   left:var(--logo-left);
   bottom:var(--logo-bottom);
   z-index:9997;
+
+  transform: scale(var(--logo-scale));
+  transform-origin: left bottom;
 }
 .fixed-logo img{
   width:var(--logo-w);
@@ -153,20 +186,24 @@ img{display:block;max-width:none;height:auto;}
 }
 
 /* =========================
-   ピン：見た目＆当たり判定を安定
+   ピン
 ========================= */
 .leaflet-marker-icon{background:transparent;border:0;}
 
 .pinwrap{
   position:relative;
-  width: var(--pin-w);
+
+  /* ピンの見た目サイズ */
+  width: calc(var(--pin-w) * var(--pin-scale));
+
+  /* “刺さる点” の微調整込み */
   transform: translate(
     calc(-50% + var(--pin-anchor-x)),
     calc(-100% + var(--pin-anchor-y))
   );
 }
 .pinwrap img{
-  width:var(--pin-w);
+  width: calc(var(--pin-w) * var(--pin-scale));
   height:auto;
   display:block;
 }
@@ -240,7 +277,6 @@ categories.forEach(cat=>{
   const row = document.createElement("div");
   row.className="cat-row";
 
-  // ✅ imgではなくdivにして背景で切替（ズレ消滅）
   const check = document.createElement("div");
   check.className="chk on";
 
@@ -261,18 +297,17 @@ categories.forEach(cat=>{
   };
 });
 
-/* ===== ピン ===== */
-function getPinW(){
-  const w = getComputedStyle(document.documentElement).getPropertyValue('--pin-w').trim();
-  const n = parseFloat(w);
-  return Number.isFinite(n) ? n : 38;
+/* ===== ピン =====
+   iconSize/iconAnchor を “実サイズ” に合わせる（当たり判定/位置ズレ防止）
+*/
+function getVarNumber(name, fallback){
+  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  const n = parseFloat(v);
+  return Number.isFinite(n) ? n : fallback;
 }
-
 function pinIcon(number){
-  const w = getPinW();
-
-  // pin.png が縦長ならここを w*1.25 などに
-  const h = w * 1.25;
+  const pinW = getVarNumber('--pin-w', 38) * getVarNumber('--pin-scale', 1.0);
+  const pinH = pinW * 1.25; // pin.pngが縦長ならこの倍率を調整（1.15〜1.4）
 
   return L.divIcon({
     className:"",
@@ -282,8 +317,8 @@ function pinIcon(number){
         <div class="pinlabel">${number||""}</div>
       </div>
     `,
-    iconSize:[w, h],        // 当たり判定
-    iconAnchor:[w/2, h]     // 下端中央が刺さる
+    iconSize:[pinW, pinH],
+    iconAnchor:[pinW/2, pinH]
   });
 }
 
@@ -300,4 +335,3 @@ fetch("./points.json")
 </script>
 </body>
 </html>
-
