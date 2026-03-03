@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
 <style>
-html,body{height:100%;margin:0;}
+html,body{height:100%;margin:0;background:#111;}
 #map{height:100%;width:100%;}
 
 .searchbox{
@@ -16,37 +16,33 @@ html,body{height:100%;margin:0;}
   top:10px;
   left:10px;
   z-index:9999;
-  background:rgba(255,255,255,0.95);
+  background:rgba(0,0,0,0.8);
   padding:12px;
   border-radius:12px;
-  width:320px;
-  box-shadow:0 8px 25px rgba(0,0,0,0.25);
+  width:300px;
+  color:white;
+  box-shadow:0 0 15px rgba(0,255,255,0.4);
   font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
 }
 
 .searchbox input{
   width:100%;
-  font-size:14px;
-  padding:8px 10px;
-  border:1px solid #ccc;
+  padding:8px;
   border-radius:8px;
-}
-
-.results{
-  margin-top:8px;
-  max-height:220px;
-  overflow:auto;
-  display:none;
+  border:none;
+  outline:none;
+  background:#222;
+  color:#0ff;
 }
 
 .result-item{
   padding:6px;
   cursor:pointer;
-  border-radius:6px;
+  color:#0ff;
 }
 
 .result-item:hover{
-  background:#f2f2f2;
+  background:#222;
 }
 </style>
 </head>
@@ -55,7 +51,7 @@ html,body{height:100%;margin:0;}
 
 <div class="searchbox">
   <input id="q" type="text" placeholder="番号検索 (例: 4020)" />
-  <div id="results" class="results"></div>
+  <div id="results"></div>
 </div>
 
 <div id="map"></div>
@@ -95,35 +91,41 @@ categories.forEach(cat=>{
   layerControl.addOverlay(layers[cat],cat);
 });
 
-function makePinIcon(color, emoji, number){
+// ネオンカラー
+const neonColors = {
+  "修理台": "#ff003c",
+  "受注場所": "#00ffff",
+  "武器クラフト": "#ff8c00",
+  "犯罪クラフト": "#ff00ff",
+  "薬素材": "#00ff66",
+  "精製所": "#ff1493",
+  "売人場所": "#8a2be2"
+};
+
+function makeNeonIcon(color, number){
   const id = color.replace("#","");
 
   const svg = `
-  <svg xmlns="http://www.w3.org/2000/svg" width="52" height="70" viewBox="0 0 52 70">
+  <svg xmlns="http://www.w3.org/2000/svg" width="56" height="70" viewBox="0 0 56 70">
     <defs>
-      <radialGradient id="grad-${id}" cx="30%" cy="25%" r="80%">
-        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.6"/>
-        <stop offset="40%" stop-color="${color}" stop-opacity="1"/>
-        <stop offset="100%" stop-color="#000000" stop-opacity="0.35"/>
-      </radialGradient>
-
-      <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
-        <feDropShadow dx="0" dy="6" stdDeviation="5" flood-opacity="0.45"/>
+      <filter id="glow-${id}" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+        <feMerge>
+          <feMergeNode in="coloredBlur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
       </filter>
     </defs>
 
-    <path d="M26 68S50 46 50 25A24 24 0 1 0 2 25c0 21 24 43 24 43z"
-          fill="url(#grad-${id})"
-          filter="url(#shadow)"/>
+    <circle cx="28" cy="28" r="18"
+      fill="${color}"
+      filter="url(#glow-${id})"/>
 
-    <ellipse cx="22" cy="18" rx="12" ry="8" fill="white" opacity="0.25"/>
-    <circle cx="26" cy="27" r="11" fill="white"/>
-
-    <text x="26" y="31" text-anchor="middle" font-size="15">
-      ${emoji}
-    </text>
-
-    <text x="26" y="58" text-anchor="middle" font-size="14" font-weight="bold" fill="white">
+    <text x="28" y="33"
+      text-anchor="middle"
+      font-size="14"
+      font-weight="bold"
+      fill="#000">
       ${number}
     </text>
   </svg>`;
@@ -131,30 +133,20 @@ function makePinIcon(color, emoji, number){
   return L.divIcon({
     className:"",
     html: svg,
-    iconSize:[52,70],
-    iconAnchor:[26,68],
-    popupAnchor:[0,-65]
+    iconSize:[56,70],
+    iconAnchor:[28,28],
+    popupAnchor:[0,-20]
   });
 }
-
-const iconByCategory = {
-  "修理台": "#FF3B30",
-  "受注場所": "#000000",
-  "武器クラフト": "#FF9500",
-  "犯罪クラフト": "#FF7A00",
-  "薬素材": "#34C759",
-  "精製所": "#FF2D55",
-  "売人場所": "#AF52DE"
-};
 
 const searchable = [];
 
 function addPoint(p){
   const cat = p.category;
-  const color = iconByCategory[cat] || "#8E8E93";
+  const color = neonColors[cat] || "#00ffff";
 
   const marker = L.marker([p.y, p.x], {
-    icon: makePinIcon(color,"●",p.title)
+    icon: makeNeonIcon(color, p.title)
   }).bindPopup(`<b>${p.title}</b>`);
 
   marker.addTo(layers[cat]);
@@ -176,12 +168,10 @@ input.addEventListener("input",()=>{
   const q = input.value.trim();
   results.innerHTML="";
   if(!q){
-    results.style.display="none";
     return;
   }
 
   const hits = searchable.filter(p=>p.title.includes(q));
-  results.style.display="block";
 
   hits.forEach(p=>{
     const div=document.createElement("div");
