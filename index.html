@@ -56,9 +56,10 @@ const bounds = [[0,0],[imgHeight,imgWidth]];
 L.imageOverlay('./map.png', bounds).addTo(map);
 map.fitBounds(bounds);
 
-// カテゴリ切替
+// カテゴリ切替（右側）
 const layerControl = L.control.layers(null,null,{collapsed:false}).addTo(map);
 const layers = {};
+
 // 右側に表示したいカテゴリ一覧（ピンが0個でも出す）
 const categories = [
   "修理台",
@@ -75,6 +76,7 @@ categories.forEach(cat => {
   layers[cat] = L.layerGroup().addTo(map);
   layerControl.addOverlay(layers[cat], cat);
 });
+
 // ===== アイコン（色＋絵文字） =====
 function makePinIcon(color, emoji){
   const safeEmoji = (emoji || "•");
@@ -109,7 +111,7 @@ const iconByCategory = {
 };
 
 function getIcon(cat){
-  return iconByCategory[cat] || makePinIcon("#8E8E93","•");
+  return iconByCategory[cat] || iconByCategory["未分類"];
 }
 
 // 検索用
@@ -126,19 +128,17 @@ function addPoint(p){
   const title = p.title || "無題";
   const note = p.note || "";
 
-  if(!layers[cat]){
-    layers[cat] = L.layerGroup();
-    layers[cat].addTo(map);
-    layerControl.addOverlay(layers[cat], cat);
-  }
+  // ✅ ここ重要：勝手に新カテゴリを作らない
+  // categories に無いカテゴリは「未分類」扱いにする
+  const safeCat = (layers[cat] ? cat : "未分類");
 
-  const marker = L.marker([p.y, p.x], { icon: getIcon(cat) })
-    .bindPopup(`<b>${escapeHtml(title)}</b><br>${escapeHtml(note)}<br><span class="badge">${escapeHtml(cat)}</span>`);
+  const marker = L.marker([p.y, p.x], { icon: getIcon(safeCat) })
+    .bindPopup(`<b>${escapeHtml(title)}</b><br>${escapeHtml(note)}<br><span class="badge">${escapeHtml(safeCat)}</span>`);
 
-  marker.addTo(layers[cat]);
+  marker.addTo(layers[safeCat]);
 
-  const text = (cat + " " + title + " " + note).toLowerCase();
-  searchable.push({ cat, title, note, x:p.x, y:p.y, marker, text });
+  const text = (safeCat + " " + title + " " + note).toLowerCase();
+  searchable.push({ cat: safeCat, title, note, x:p.x, y:p.y, marker, text });
 }
 
 fetch('./points.json')
@@ -192,4 +192,3 @@ input.addEventListener("input", () => {
 </script>
 </body>
 </html>
-
