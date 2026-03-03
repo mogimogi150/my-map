@@ -7,130 +7,82 @@
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
-<!-- おしゃれフォント（日本語OK） -->
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700&display=swap" rel="stylesheet">
 
 <style>
 html,body{
   height:100%;
   margin:0;
-  background:#e9e3f6; /* くすみ薄紫 */
-  font-family:"Zen Kaku Gothic New", system-ui, -apple-system, "Segoe UI", sans-serif;
+  background:#e9e3f6;
+  font-family:"Zen Kaku Gothic New", sans-serif;
 }
 #map{height:100%;width:100%;}
 
-/* ===== 左上：検索UI（少し右へ寄せる） ===== */
+/* ===== 検索窓を画像化 ===== */
 .searchbox{
   position:absolute;
   top:12px;
-  left:56px;            /* ← 被り回避で右へ */
+  left:70px;
   z-index:9999;
-  width:min(340px, calc(100vw - 80px));
-  padding:14px;
-  border-radius:18px;
-  background:rgba(255,255,255,0.88);
-  border:2px solid rgba(90,63,154,0.45);
-  box-shadow:0 10px 28px rgba(0,0,0,0.18);
-  backdrop-filter: blur(6px);
+  width:600px;
+  height:120px;
+  background:url('./searchbox.png') no-repeat center/contain;
+  display:flex;
+  align-items:center;
+  padding-left:220px;
+  box-sizing:border-box;
 }
 
 .searchbox input{
-  width:100%;
-  padding:9px 10px;
-  border-radius:12px;
-  border:1px solid rgba(90,63,154,0.45);
+  width:70%;
+  height:40px;
+  border:none;
   outline:none;
-  font-size:14px;
-  background:#faf8ff;
-}
-
-.hint{
-  font-size:12px;
-  color:#4b3f6b;
-  margin-top:8px;
-  opacity:0.9;
+  background:transparent;
+  font-size:16px;
+  color:#4b2c6b;
 }
 
 .results{
-  margin-top:10px;
+  position:absolute;
+  top:130px;
+  left:80px;
+  width:500px;
   max-height:220px;
   overflow:auto;
   display:none;
-  border-top:1px solid rgba(90,63,154,0.18);
-  padding-top:10px;
+  background:rgba(255,255,255,0.95);
+  border-radius:15px;
+  padding:10px;
 }
 
 .result-item{
-  padding:8px 8px;
-  border-radius:12px;
+  padding:8px;
+  border-radius:10px;
   cursor:pointer;
-  color:#2b2240;
 }
 .result-item:hover{
-  background:rgba(178,157,217,0.18);
-}
-.result-title{
-  font-weight:700;
-  font-size:13px;
-}
-.result-meta{
-  font-size:12px;
-  opacity:0.85;
-  margin-top:2px;
-}
-.badge{
-  display:inline-block;
-  margin-left:8px;
-  padding:2px 8px;
-  border-radius:999px;
-  background:rgba(178,157,217,0.25);
-  border:1px solid rgba(90,63,154,0.25);
-  font-size:11px;
+  background:#f0e7ff;
 }
 
-/* ===== 右側カテゴリ（薄紫背景 + 上品） ===== */
+/* ===== 右カテゴリ ===== */
 .leaflet-control-layers{
-  background:rgba(233,227,246,0.92); /* ← 薄紫に変更 */
+  background:rgba(233,227,246,0.95);
   border-radius:20px;
-  padding:16px 16px;
-  border:2px solid rgba(90,63,154,0.45);
-  box-shadow:0 12px 28px rgba(0,0,0,0.22);
-  font-size:16px; /* 少し大きめ */
+  padding:18px;
+  border:2px solid rgba(90,63,154,0.5);
+  box-shadow:0 12px 28px rgba(0,0,0,0.2);
+  font-size:16px;
 }
 
-.leaflet-control-layers label{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  margin:10px 0;
-  font-weight:700;
-  color:#2b2240;
-}
-
-/* リスト長い時スクロール */
-.leaflet-control-layers-overlays{
-  max-height:280px;
-  overflow:auto;
-  padding-right:6px;
-}
-
-/* スクロールバー */
-.leaflet-control-layers-overlays::-webkit-scrollbar{ width:8px; }
-.leaflet-control-layers-overlays::-webkit-scrollbar-thumb{
-  background:rgba(90,63,154,0.28);
-  border-radius:99px;
-}
-
-/* ===== チェックボックスを絵文字化（逆にする） ===== */
 .leaflet-control-layers input[type="checkbox"]{
   appearance:none;
   width:24px;
   height:24px;
-  cursor:pointer;
   position:relative;
+  cursor:pointer;
 }
 
-/* ⬇️ 外れてる時：💜  （←逆にする） */
 .leaflet-control-layers input[type="checkbox"]::before{
   content:"💜";
   font-size:20px;
@@ -139,25 +91,21 @@ html,body{
   left:0;
 }
 
-/* ⬇️ 入ってる時：✅  （←逆にする） */
 .leaflet-control-layers input[type="checkbox"]:checked::before{
   content:"✅";
 }
 
-/* ===== 左下：ロゴ固定（動かない） ===== */
+/* ===== ロゴ固定 ===== */
 .logo-fixed{
   position:fixed;
   left:14px;
   bottom:14px;
   z-index:99999;
-  pointer-events:none; /* クリック邪魔しない */
+  pointer-events:none;
 }
 .logo-fixed img{
-  width:min(180px, 32vw);
+  width:160px;
   height:auto;
-  display:block;
-  filter: drop-shadow(0 8px 22px rgba(0,0,0,0.45));
-  opacity:0.98;
 }
 </style>
 </head>
@@ -165,14 +113,13 @@ html,body{
 <body>
 
 <div class="searchbox">
-  <input id="q" type="text" placeholder="検索（例：4020 / 修理台 / メモ）" />
-  <div class="hint">タイトル（番号）・メモ・カテゴリで検索できます</div>
-  <div id="results" class="results"></div>
+  <input id="q" type="text" placeholder="番号検索..." />
 </div>
 
-<!-- 左下ロゴ（固定） -->
+<div id="results" class="results"></div>
+
 <div class="logo-fixed">
-  <img src="./ROGO.png" alt="Gang Logo">
+  <img src="./ROGO.png">
 </div>
 
 <div id="map"></div>
@@ -180,154 +127,99 @@ html,body{
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-// 画像サイズ（あなたの map.png）
 const imgWidth = 1457;
 const imgHeight = 2048;
 
 const map = L.map('map',{
   crs: L.CRS.Simple,
-  minZoom: -2,
-  maxZoom: 4
+  minZoom:-2,
+  maxZoom:4
 });
 
 const bounds = [[0,0],[imgHeight,imgWidth]];
 L.imageOverlay('./map.png', bounds).addTo(map);
 map.fitBounds(bounds);
 
-// カテゴリ切替（右側）
 const layerControl = L.control.layers(null,null,{collapsed:false}).addTo(map);
 const layers = {};
+
 const categories = [
-  "修理台",
-  "受注場所",
-  "武器クラフト",
-  "犯罪クラフト",
-  "薬素材",
-  "精製所",
-  "売人場所"
+  "修理台","受注場所","武器クラフト",
+  "犯罪クラフト","薬素材","精製所","売人場所"
 ];
 
-// 空レイヤーを先に作って登録（=右側に最初から表示）
-categories.forEach(cat => {
-  layers[cat] = L.layerGroup().addTo(map);
-  layerControl.addOverlay(layers[cat], cat);
+categories.forEach(cat=>{
+  layers[cat]=L.layerGroup().addTo(map);
+  layerControl.addOverlay(layers[cat],cat);
 });
 
-// ===== ピン（元の涙型 + 黒フチ + 番号） =====
-function escapeHtml(str) {
-  return String(str).replace(/[&<>"']/g, s => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  }[s]));
-}
-
-function makePin(color, number){
-  const svg = `
-  <svg xmlns="http://www.w3.org/2000/svg" width="44" height="60" viewBox="0 0 44 60">
-    <path d="M22 58S40 40 40 22A18 18 0 1 0 4 22c0 18 18 36 18 36z"
-          fill="${color}"
-          stroke="#000000"
-          stroke-width="2"/>
-    <circle cx="22" cy="23" r="9"
-            fill="white"
-            stroke="#000000"
-            stroke-width="1"/>
-    <text x="22" y="27"
-          text-anchor="middle"
-          font-size="11"
-          font-weight="700"
-          fill="#000000">
-      ${escapeHtml(number)}
-    </text>
-  </svg>`;
+/* ===== 画像ピン使用 ===== */
+function makeImagePin(number){
+  const html = `
+  <div style="position:relative;width:90px;height:130px;">
+    <img src="./pin.png" style="width:90px;height:130px;">
+    <div style="
+      position:absolute;
+      top:45px;
+      left:0;
+      width:100%;
+      text-align:center;
+      font-weight:bold;
+      color:white;
+      text-shadow:0 0 6px black;
+      font-size:16px;">
+      ${number}
+    </div>
+  </div>`;
 
   return L.divIcon({
     className:"",
-    html: svg,
-    iconSize:[44,60],
-    iconAnchor:[22,58],
-    popupAnchor:[0,-50]
+    html:html,
+    iconSize:[90,130],
+    iconAnchor:[45,120],
+    popupAnchor:[0,-110]
   });
 }
 
-// カテゴリ色（クロミっぽい紫寄せ）
-const colors = {
-  "修理台": "#7a6aa6",
-  "受注場所": "#1f1a2e",
-  "武器クラフト": "#9b7bd6",
-  "犯罪クラフト": "#6e4cb8",
-  "薬素材": "#8c79b5",
-  "精製所": "#5a3f9a",
-  "売人場所": "#b29dd9",
-  "未分類": "#8E8E93"
-};
-
-// 検索用
-const searchable = [];
-
-function addPoint(p){
-  const cat = p.category || "未分類";
-  const title = p.title || "無題";
-  const note = p.note || "";
-
-  if(!layers[cat]){
-    layers[cat] = L.layerGroup().addTo(map);
-    layerControl.addOverlay(layers[cat], cat);
-  }
-
-  const color = colors[cat] || colors["未分類"];
-
-  const marker = L.marker([p.y, p.x], { icon: makePin(color, title) })
-    .bindPopup(`<b>${escapeHtml(title)}</b><br>${escapeHtml(note)}<br><span class="badge">${escapeHtml(cat)}</span>`);
-
-  marker.addTo(layers[cat]);
-
-  const text = (cat + " " + title + " " + note).toLowerCase();
-  searchable.push({ cat, title, note, x:p.x, y:p.y, marker, text });
-}
-
 fetch('./points.json')
-  .then(r=>r.json())
-  .then(points=>points.forEach(addPoint));
-
-// クリックで座標表示（必要なら）
-map.on('click', (e) => {
-  const x = Math.round(e.latlng.lng);
-  const y = Math.round(e.latlng.lat);
-  L.popup().setLatLng(e.latlng).setContent(`x: ${x}<br>y: ${y}`).openOn(map);
+.then(r=>r.json())
+.then(points=>{
+  points.forEach(p=>{
+    L.marker([p.y,p.x],{
+      icon:makeImagePin(p.title)
+    }).addTo(layers[p.category]);
+  });
 });
 
-// 検索UI
-const input = document.getElementById("q");
-const results = document.getElementById("results");
+/* ===== 検索 ===== */
+const input=document.getElementById("q");
+const results=document.getElementById("results");
+const searchable=[];
 
-input.addEventListener("input", () => {
-  const q = input.value.trim().toLowerCase();
+fetch('./points.json')
+.then(r=>r.json())
+.then(points=>{
+  points.forEach(p=>{
+    searchable.push(p);
+  });
+});
+
+input.addEventListener("input",()=>{
+  const q=input.value.trim();
   if(!q){
-    results.style.display = "none";
-    results.innerHTML = "";
+    results.style.display="none";
+    results.innerHTML="";
     return;
   }
-
-  const hits = searchable.filter(p => p.text.includes(q)).slice(0, 25);
-  results.innerHTML = "";
-  results.style.display = "block";
-
-  if(hits.length === 0){
-    results.innerHTML = `<div class="result-item"><div class="result-title">該当なし</div></div>`;
-    return;
-  }
-
-  hits.forEach(p => {
-    const el = document.createElement("div");
-    el.className = "result-item";
-    el.innerHTML = `
-      <div class="result-title">${escapeHtml(p.title)}<span class="badge">${escapeHtml(p.cat)}</span></div>
-      <div class="result-meta">${escapeHtml(p.note || "")}</div>
-    `;
-    el.onclick = () => {
-      map.setView([p.y, p.x], Math.max(map.getZoom(), 1));
-      p.marker.openPopup();
-      if(layers[p.cat] && !map.hasLayer(layers[p.cat])) layers[p.cat].addTo(map);
+  const hits=searchable.filter(p=>p.title.includes(q));
+  results.innerHTML="";
+  results.style.display="block";
+  hits.forEach(p=>{
+    const el=document.createElement("div");
+    el.className="result-item";
+    el.innerText=p.title;
+    el.onclick=()=>{
+      map.setView([p.y,p.x],2);
     };
     results.appendChild(el);
   });
