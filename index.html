@@ -7,15 +7,15 @@
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
-<!-- かわいいフォント -->
-<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@700&display=swap" rel="stylesheet">
+<!-- 上品かわいいフォント -->
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@600&display=swap" rel="stylesheet">
 
 <style>
 html,body{
   height:100%;
   margin:0;
-  background:#ffe6f2;
-  font-family:"M PLUS Rounded 1c", sans-serif;
+  background:#e8e3f3; /* くすみラベンダー */
+  font-family:"Zen Maru Gothic", sans-serif;
 }
 
 #map{
@@ -23,7 +23,7 @@ html,body{
   width:100%;
 }
 
-/* 検索ボックス */
+/* ===== 検索ボックス ===== */
 .searchbox{
   position:absolute;
   top:12px;
@@ -31,42 +31,43 @@ html,body{
   z-index:9999;
   width:320px;
   padding:14px;
-  border-radius:20px;
-  background:rgba(255,255,255,0.9);
-  border:3px solid #ff1493;
-  box-shadow:0 0 15px #ff69b4;
+  border-radius:18px;
+  background:rgba(255,255,255,0.85);
+  border:2px solid #7a6aa6;
+  box-shadow:0 6px 20px rgba(0,0,0,0.15);
 }
 
 .searchbox input{
   width:100%;
   padding:8px;
   border-radius:12px;
-  border:2px solid #ff1493;
+  border:1px solid #7a6aa6;
   outline:none;
   font-size:14px;
+  background:#f7f5fc;
 }
 
-/* ===== 右側カテゴリデザイン ===== */
+/* ===== 右側カテゴリ（クロミ風） ===== */
 .leaflet-control-layers{
-  background:rgba(255,255,255,0.9);
+  background:rgba(255,255,255,0.88);
   border-radius:20px;
-  padding:16px;
-  border:3px solid #ff1493;
-  box-shadow:0 0 20px #ff69b4;
+  padding:18px;
+  border:2px solid #7a6aa6;
+  box-shadow:0 8px 25px rgba(0,0,0,0.2);
   font-size:16px;
 }
 
-/* 各カテゴリ行 */
+/* 各カテゴリ */
 .leaflet-control-layers label{
   display:flex;
   align-items:center;
   gap:10px;
-  margin:10px 0;
-  font-weight:700;
-  color:#ff1493;
+  margin:12px 0;
+  font-weight:600;
+  color:#4b3f6b;
 }
 
-/* ハートチェックボックス */
+/* ハートチェック（上品仕様） */
 .leaflet-control-layers input[type="checkbox"]{
   appearance:none;
   width:22px;
@@ -77,24 +78,26 @@ html,body{
 
 .leaflet-control-layers input[type="checkbox"]::before{
   content:"♡";
-  font-size:22px;
-  color:#ff1493;
+  font-size:20px;
+  color:#7a6aa6;
   position:absolute;
-  top:-3px;
+  top:-2px;
   left:0;
 }
 
 .leaflet-control-layers input[type="checkbox"]:checked::before{
-  content:"💖";
-  color:#ff1493;
+  content:"💜";
+  color:#5a3f9a;
 }
+
+/* ===== ピン ===== */
 </style>
 </head>
 
 <body>
 
 <div class="searchbox">
-  <input id="q" type="text" placeholder="番号検索 (例: 4020)" />
+  <input type="text" placeholder="番号検索 (例: 4020)" />
 </div>
 
 <div id="map"></div>
@@ -102,6 +105,7 @@ html,body{
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
+
 const imgWidth = 1457;
 const imgHeight = 2048;
 
@@ -134,13 +138,13 @@ categories.forEach(cat=>{
 });
 
 const colors = {
-  "修理台": "#FF3B30",
-  "受注場所": "#000000",
-  "武器クラフト": "#FF9500",
-  "犯罪クラフト": "#FF7A00",
-  "薬素材": "#34C759",
-  "精製所": "#FF2D55",
-  "売人場所": "#AF52DE"
+  "修理台": "#7a6aa6",
+  "受注場所": "#4b3f6b",
+  "武器クラフト": "#9b7bd6",
+  "犯罪クラフト": "#6e4cb8",
+  "薬素材": "#8c79b5",
+  "精製所": "#5a3f9a",
+  "売人場所": "#b29dd9"
 };
 
 function makePin(color, number){
@@ -148,17 +152,17 @@ function makePin(color, number){
   <svg xmlns="http://www.w3.org/2000/svg" width="44" height="60" viewBox="0 0 44 60">
     <path d="M22 58S40 40 40 22A18 18 0 1 0 4 22c0 18 18 36 18 36z"
           fill="${color}"
-          stroke="#000"
+          stroke="#1a1625"
           stroke-width="2"/>
     <circle cx="22" cy="23" r="9"
-            fill="white"
-            stroke="#000"
+            fill="#ffffff"
+            stroke="#1a1625"
             stroke-width="1"/>
     <text x="22" y="27"
           text-anchor="middle"
           font-size="11"
           font-weight="bold"
-          fill="#000">
+          fill="#1a1625">
       ${number}
     </text>
   </svg>`;
@@ -176,12 +180,13 @@ fetch('./points.json')
   .then(r=>r.json())
   .then(points=>{
     points.forEach(p=>{
-      const color = colors[p.category] || "#8E8E93";
+      const color = colors[p.category] || "#7a6aa6";
       L.marker([p.y, p.x], {
         icon: makePin(color, p.title)
       }).addTo(layers[p.category]);
     });
   });
+
 </script>
 
 </body>
