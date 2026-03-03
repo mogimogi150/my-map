@@ -59,7 +59,22 @@ map.fitBounds(bounds);
 // カテゴリ切替
 const layerControl = L.control.layers(null,null,{collapsed:false}).addTo(map);
 const layers = {};
+// 右側に表示したいカテゴリ一覧（ピンが0個でも出す）
+const categories = [
+  "修理台",
+  "受注場所",
+  "武器クラフト",
+  "犯罪クラフト",
+  "薬素材",
+  "精製所",
+  "売人場所"
+];
 
+// 空レイヤーを先に作って登録（=右側に最初から表示）
+categories.forEach(cat => {
+  layers[cat] = L.layerGroup().addTo(map);
+  layerControl.addOverlay(layers[cat], cat);
+});
 // ===== アイコン（色＋絵文字） =====
 function makePinIcon(color, emoji){
   const safeEmoji = (emoji || "•");
@@ -177,3 +192,4 @@ input.addEventListener("input", () => {
 </script>
 </body>
 </html>
+
