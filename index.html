@@ -6,10 +6,18 @@
 <title>FiveM共有マップ</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700&display=swap" rel="stylesheet">
 
 <style>
+:root{
+  /* ===== ここだけ触ればサイズ調整できる ===== */
+  --search-width: 520px;     /* 検索窓 画像の横幅 */
+  --pin-width: 58px;         /* ピンの横幅 */
+  --pin-height: 78px;        /* ピンの縦幅 */
+  --pin-font: 13px;          /* ピン番号の文字サイズ */
+  --pin-text-top: 26px;      /* 番号の縦位置（上から） */
+}
+
 html,body{
   height:100%;
   margin:0;
@@ -18,24 +26,29 @@ html,body{
 }
 #map{height:100%;width:100%;}
 
-/* ===== 検索窓を画像化 ===== */
-.searchbox{
+/* ===== 検索UI（画像をそのまま表示して上に入力欄を置く）===== */
+.search-ui{
   position:absolute;
-  top:12px;
-  left:70px;
+  top:10px;
+  left:70px;          /* プラスマイナスと被らないよう右へ */
   z-index:9999;
-  width:600px;
-  height:120px;
-  background:url('./searchbox.png') no-repeat center/contain;
-  display:flex;
-  align-items:center;
-  padding-left:220px;
-  box-sizing:border-box;
+  width:var(--search-width);
+}
+.search-ui img{
+  width:100%;
+  height:auto;
+  display:block;
+  pointer-events:none;
+  user-select:none;
 }
 
-.searchbox input{
-  width:70%;
-  height:40px;
+/* 入力欄：検索画像の上に重ねる（位置はここで調整） */
+.search-ui input{
+  position:absolute;
+  left:165px;         /* ← 文字入力の開始位置（必要なら微調整） */
+  top:38px;           /* ← 入力欄の縦位置（必要なら微調整） */
+  width:calc(100% - 210px);
+  height:44px;
   border:none;
   outline:none;
   background:transparent;
@@ -43,27 +56,27 @@ html,body{
   color:#4b2c6b;
 }
 
+/* 検索結果 */
 .results{
   position:absolute;
-  top:130px;
-  left:80px;
-  width:500px;
-  max-height:220px;
+  top:110px;
+  left:70px;
+  z-index:9999;
+  width:calc(var(--search-width) - 20px);
+  max-height:240px;
   overflow:auto;
   display:none;
-  background:rgba(255,255,255,0.95);
-  border-radius:15px;
+  background:rgba(255,255,255,0.96);
+  border-radius:16px;
   padding:10px;
+  box-shadow:0 10px 24px rgba(0,0,0,0.18);
 }
-
 .result-item{
-  padding:8px;
-  border-radius:10px;
+  padding:8px 10px;
+  border-radius:12px;
   cursor:pointer;
 }
-.result-item:hover{
-  background:#f0e7ff;
-}
+.result-item:hover{ background:#f0e7ff; }
 
 /* ===== 右カテゴリ ===== */
 .leaflet-control-layers{
@@ -74,23 +87,28 @@ html,body{
   box-shadow:0 12px 28px rgba(0,0,0,0.2);
   font-size:16px;
 }
+.leaflet-control-layers label{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:6px 2px;
+}
 
+/* チェック絵文字（未チェック=💜 / チェック=✅） */
 .leaflet-control-layers input[type="checkbox"]{
   appearance:none;
-  width:24px;
-  height:24px;
+  width:26px;
+  height:26px;
   position:relative;
   cursor:pointer;
 }
-
 .leaflet-control-layers input[type="checkbox"]::before{
   content:"💜";
   font-size:20px;
   position:absolute;
-  top:-2px;
+  top:-1px;
   left:0;
 }
-
 .leaflet-control-layers input[type="checkbox"]:checked::before{
   content:"✅";
 }
@@ -103,23 +121,22 @@ html,body{
   z-index:99999;
   pointer-events:none;
 }
-.logo-fixed img{
-  width:160px;
-  height:auto;
-}
+.logo-fixed img{ width:160px; height:auto; }
 </style>
 </head>
 
 <body>
 
-<div class="searchbox">
+<!-- 検索UI -->
+<div class="search-ui">
+  <img src="./searchbox.png" alt="">
   <input id="q" type="text" placeholder="番号検索..." />
 </div>
-
 <div id="results" class="results"></div>
 
+<!-- ロゴ -->
 <div class="logo-fixed">
-  <img src="./ROGO.png">
+  <img src="./ROGO.png" alt="">
 </div>
 
 <div id="map"></div>
@@ -127,6 +144,7 @@ html,body{
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
+// 画像サイズ（あなたの map.png）
 const imgWidth = 1457;
 const imgHeight = 2048;
 
@@ -140,86 +158,105 @@ const bounds = [[0,0],[imgHeight,imgWidth]];
 L.imageOverlay('./map.png', bounds).addTo(map);
 map.fitBounds(bounds);
 
+// カテゴリ
 const layerControl = L.control.layers(null,null,{collapsed:false}).addTo(map);
 const layers = {};
-
 const categories = [
   "修理台","受注場所","武器クラフト",
   "犯罪クラフト","薬素材","精製所","売人場所"
 ];
-
 categories.forEach(cat=>{
   layers[cat]=L.layerGroup().addTo(map);
   layerControl.addOverlay(layers[cat],cat);
 });
 
-/* ===== 画像ピン使用 ===== */
+// ===== 画像ピン + 番号 =====
 function makeImagePin(number){
+  const styles = getComputedStyle(document.documentElement);
+  const W = parseInt(styles.getPropertyValue('--pin-width'));
+  const H = parseInt(styles.getPropertyValue('--pin-height'));
+  const FS = styles.getPropertyValue('--pin-font').trim();
+  const TOP = styles.getPropertyValue('--pin-text-top').trim();
+
   const html = `
-  <div style="position:relative;width:90px;height:130px;">
-    <img src="./pin.png" style="width:90px;height:130px;">
-    <div style="
-      position:absolute;
-      top:45px;
-      left:0;
-      width:100%;
-      text-align:center;
-      font-weight:bold;
-      color:white;
-      text-shadow:0 0 6px black;
-      font-size:16px;">
-      ${number}
-    </div>
-  </div>`;
+    <div style="position:relative;width:${W}px;height:${H}px;">
+      <img src="./pin.png" style="width:${W}px;height:${H}px;display:block;">
+      <div style="
+        position:absolute;
+        top:${TOP};
+        left:0;
+        width:100%;
+        text-align:center;
+        font-weight:800;
+        color:#ffffff;
+        text-shadow: 0 2px 0 rgba(0,0,0,0.85), 0 0 10px rgba(0,0,0,0.6);
+        font-size:${FS};
+        letter-spacing:0.5px;
+        pointer-events:none;">
+        ${number}
+      </div>
+    </div>`;
 
   return L.divIcon({
     className:"",
-    html:html,
-    iconSize:[90,130],
-    iconAnchor:[45,120],
-    popupAnchor:[0,-110]
+    html,
+    iconSize:[W,H],
+    iconAnchor:[W/2, H-2],
+    popupAnchor:[0, -(H-6)]
   });
 }
 
+// points.json から表示
+const searchable = [];
 fetch('./points.json')
-.then(r=>r.json())
-.then(points=>{
-  points.forEach(p=>{
-    L.marker([p.y,p.x],{
-      icon:makeImagePin(p.title)
-    }).addTo(layers[p.category]);
-  });
-});
+  .then(r=>r.json())
+  .then(points=>{
+    points.forEach(p=>{
+      const cat = p.category || "未分類";
+      if(!layers[cat]){
+        layers[cat] = L.layerGroup().addTo(map);
+        layerControl.addOverlay(layers[cat], cat);
+      }
 
-/* ===== 検索 ===== */
-const input=document.getElementById("q");
-const results=document.getElementById("results");
-const searchable=[];
+      const title = String(p.title || "");
+      const marker = L.marker([p.y,p.x],{ icon: makeImagePin(title) })
+        .bindPopup(`<b>${title}</b><br>${cat}`);
 
-fetch('./points.json')
-.then(r=>r.json())
-.then(points=>{
-  points.forEach(p=>{
-    searchable.push(p);
+      marker.addTo(layers[cat]);
+      searchable.push({ ...p, marker });
+    });
   });
-});
+
+// ===== 検索 =====
+const input = document.getElementById("q");
+const results = document.getElementById("results");
 
 input.addEventListener("input",()=>{
-  const q=input.value.trim();
+  const q = input.value.trim();
   if(!q){
     results.style.display="none";
     results.innerHTML="";
     return;
   }
-  const hits=searchable.filter(p=>p.title.includes(q));
+
+  const hits = searchable.filter(p => String(p.title).includes(q)).slice(0, 30);
+
   results.innerHTML="";
   results.style.display="block";
+
+  if(hits.length === 0){
+    results.innerHTML = `<div class="result-item">該当なし</div>`;
+    return;
+  }
+
   hits.forEach(p=>{
-    const el=document.createElement("div");
+    const el = document.createElement("div");
     el.className="result-item";
-    el.innerText=p.title;
-    el.onclick=()=>{
-      map.setView([p.y,p.x],2);
+    el.textContent = `${p.title}（${p.category}）`;
+    el.onclick = ()=>{
+      map.setView([p.y,p.x], Math.max(map.getZoom(), 2));
+      p.marker.openPopup();
+      if(p.category && layers[p.category] && !map.hasLayer(layers[p.category])) layers[p.category].addTo(map);
     };
     results.appendChild(el);
   });
