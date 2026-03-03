@@ -8,203 +8,225 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
 <style>
-html,body{height:100%;margin:0;background:#0b0f14;}
-#map{height:100%;width:100%;}
+html,body{
+  height:100%;
+  margin:0;
+  background:#0a0f16;
+}
 
+#map{
+  height:100%;
+  width:100%;
+}
+
+/* ネオン検索UI */
 .searchbox{
-  position:absolute; top:10px; left:10px; z-index:9999;
-  width:min(340px, calc(100vw - 20px));
-  padding:12px;
+  position:absolute;
+  top:12px;
+  left:12px;
+  z-index:9999;
+  width:320px;
+  padding:14px;
   border-radius:14px;
-  background:rgba(5,8,12,0.78);
+  background:rgba(10,15,22,0.85);
   border:1px solid rgba(0,255,255,0.25);
-  box-shadow:0 0 18px rgba(0,255,255,0.22), 0 0 40px rgba(255,0,255,0.10);
-  color:#d9f7ff;
+  box-shadow:0 0 18px rgba(0,255,255,0.25);
+  color:#7ffcff;
   font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
-  backdrop-filter: blur(6px);
+  backdrop-filter:blur(6px);
 }
 
 .searchbox input{
   width:100%;
-  font-size:14px;
-  padding:9px 10px;
+  padding:9px;
   border-radius:10px;
   border:1px solid rgba(0,255,255,0.25);
+  background:#111;
+  color:#00ffff;
   outline:none;
-  background:rgba(0,0,0,0.35);
-  color:#7ffcff;
 }
 
-.searchbox input::placeholder{ color: rgba(127,252,255,0.55); }
+.results{
+  margin-top:8px;
+  max-height:220px;
+  overflow:auto;
+  display:none;
+}
 
-.results{ margin-top:8px; max-height:220px; overflow:auto; display:none; }
 .result-item{
-  padding:8px 8px;
-  border-radius:10px;
+  padding:6px;
   cursor:pointer;
-  border:1px solid transparent;
-  color:#7ffcff;
+  border-radius:8px;
 }
+
 .result-item:hover{
-  background:rgba(0,255,255,0.06);
-  border-color:rgba(0,255,255,0.18);
+  background:#111;
 }
-.small{ font-size:12px; opacity:0.8; margin-top:6px; }
 </style>
 </head>
 
 <body>
+
 <div class="searchbox">
   <input id="q" type="text" placeholder="番号検索 (例: 4020)" />
-  <div class="small">タイトル（番号）で検索できます</div>
   <div id="results" class="results"></div>
 </div>
 
 <div id="map"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <script>
+
+// マップ画像サイズ
 const imgWidth = 1457;
 const imgHeight = 2048;
 
-const map = L.map('map',{ crs: L.CRS.Simple, minZoom: -2, maxZoom: 4 });
+const map = L.map('map',{
+  crs: L.CRS.Simple,
+  minZoom: -2,
+  maxZoom: 4
+});
+
 const bounds = [[0,0],[imgHeight,imgWidth]];
 L.imageOverlay('./map.png', bounds).addTo(map);
 map.fitBounds(bounds);
 
-// 右側カテゴリ固定
+// カテゴリ固定表示
 const layerControl = L.control.layers(null,null,{collapsed:false}).addTo(map);
 const layers = {};
-const categories = ["修理台","受注場所","武器クラフト","犯罪クラフト","薬素材","精製所","売人場所"];
+
+const categories = [
+  "修理台",
+  "受注場所",
+  "武器クラフト",
+  "犯罪クラフト",
+  "薬素材",
+  "精製所",
+  "売人場所"
+];
+
 categories.forEach(cat=>{
   layers[cat] = L.layerGroup().addTo(map);
-  layerControl.addOverlay(layers[cat], cat);
+  layerControl.addOverlay(layers[cat],cat);
 });
 
-// ネオン色（カテゴリ別）
+// ネオンカラー
 const neonColors = {
-  "修理台": "#ff003c",   // 赤ネオン
-  "受注場所": "#00ffff", // シアン
-  "武器クラフト": "#ff8c00", // オレンジ
-  "犯罪クラフト": "#ff00ff", // マゼンタ
-  "薬素材": "#00ff66",   // 緑ネオン
-  "精製所": "#ff1493",   // ピンク
-  "売人場所": "#8a2be2"  // 紫
+  "修理台": "#ff003c",
+  "受注場所": "#00ffff",
+  "武器クラフト": "#ff8c00",
+  "犯罪クラフト": "#ff00ff",
+  "薬素材": "#00ff66",
+  "精製所": "#ff1493",
+  "売人場所": "#8a2be2"
 };
 
-function escapeHtml(str){
-  return String(str).replace(/[&<>"']/g, s => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  }[s]));
-}
+// ネオンピン（3枚目系・控えめ発光）
+function makeNeonPin(color, number){
 
-// ✅ ネオン発光 “ピン形” アイコン（番号表示つき）
-function makeNeonPinIcon(color, number){
   const id = color.replace("#","");
 
   const svg = `
-  <svg xmlns="http://www.w3.org/2000/svg" width="56" height="78" viewBox="0 0 56 78">
+  <svg xmlns="http://www.w3.org/2000/svg" width="54" height="74" viewBox="0 0 54 74">
     <defs>
-      <filter id="glow-${id}" x="-60%" y="-60%" width="220%" height="220%">
-        <feGaussianBlur stdDeviation="4.2" result="b"/>
-        <feColorMatrix in="b" type="matrix"
-          values="1 0 0 0 0
-                  0 1 0 0 0
-                  0 0 1 0 0
-                  0 0 0 1 0" result="g"/>
+      <filter id="glow-${id}" x="-40%" y="-40%" width="180%" height="180%">
+        <feGaussianBlur stdDeviation="3" result="blur"/>
         <feMerge>
-          <feMergeNode in="g"/>
+          <feMergeNode in="blur"/>
           <feMergeNode in="SourceGraphic"/>
         </feMerge>
       </filter>
-
-      <linearGradient id="pin-${id}" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="${color}" stop-opacity="1"/>
-        <stop offset="100%" stop-color="${color}" stop-opacity="0.65"/>
-      </linearGradient>
     </defs>
 
-    <!-- 外側グロー（少し太め） -->
-    <path d="M28 76S50 56 50 33A22 22 0 1 0 6 33c0 23 22 43 22 43z"
-          fill="${color}" opacity="0.35" filter="url(#glow-${id})"/>
-
-    <!-- 本体 -->
-    <path d="M28 74S48 55 48 33A20 20 0 1 0 8 33c0 22 20 41 20 41z"
-          fill="url(#pin-${id})"
-          stroke="${color}" stroke-width="1.8"
+    <!-- 外枠発光 -->
+    <path d="M27 72S48 53 48 32A21 21 0 1 0 6 32c0 21 21 40 21 40z"
+          fill="none"
+          stroke="${color}"
+          stroke-width="3"
           filter="url(#glow-${id})"/>
 
-    <!-- 中央の黒いディスク -->
-    <circle cx="28" cy="30" r="11.5" fill="#070b10" opacity="0.92"
-            stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+    <!-- 本体 -->
+    <path d="M27 70S46 52 46 32A19 19 0 1 0 8 32c0 20 19 38 19 38z"
+          fill="#0a0f16"
+          stroke="${color}"
+          stroke-width="2"/>
+
+    <!-- 中央円 -->
+    <circle cx="27" cy="30" r="11"
+            fill="#000"
+            stroke="${color}"
+            stroke-width="2"
+            filter="url(#glow-${id})"/>
 
     <!-- 番号 -->
-    <text x="28" y="35" text-anchor="middle"
-          font-size="12.5" font-weight="700"
-          fill="#e8fbff"
-          style="paint-order:stroke; stroke: rgba(0,0,0,0.55); stroke-width:2.5;">
-      ${escapeHtml(number)}
+    <text x="27" y="35"
+          text-anchor="middle"
+          font-size="13"
+          font-weight="bold"
+          fill="${color}"
+          style="paint-order:stroke; stroke: rgba(0,0,0,0.6); stroke-width:3;">
+      ${number}
     </text>
   </svg>`;
 
   return L.divIcon({
     className:"",
     html: svg,
-    iconSize:[56,78],
-    iconAnchor:[28,74],
-    popupAnchor:[0,-60]
+    iconSize:[54,74],
+    iconAnchor:[27,70],
+    popupAnchor:[0,-55]
   });
 }
 
 const searchable = [];
 
 function addPoint(p){
-  const cat = p.category || "未分類";
-  const safeCat = layers[cat] ? cat : "修理台"; // categories外は仮で修理台へ（必要なら変える）
-  const color = neonColors[safeCat] || "#00ffff";
-
-  const title = p.title || "";
-  const note  = p.note || "";
+  const cat = p.category;
+  const color = neonColors[cat] || "#00ffff";
 
   const marker = L.marker([p.y, p.x], {
-    icon: makeNeonPinIcon(color, title)
-  }).bindPopup(`<b>${escapeHtml(title)}</b><br>${escapeHtml(note)}`);
+    icon: makeNeonPin(color, p.title)
+  }).bindPopup(`<b>${p.title}</b>`);
 
-  marker.addTo(layers[safeCat]);
-  searchable.push({ title, marker });
+  marker.addTo(layers[cat]);
+
+  searchable.push({
+    title:p.title,
+    marker:marker
+  });
 }
 
 fetch('./points.json')
   .then(r=>r.json())
   .then(points=>points.forEach(addPoint));
 
-// 検索
+// 検索機能
 const input = document.getElementById("q");
 const results = document.getElementById("results");
-input.addEventListener("input", ()=>{
+
+input.addEventListener("input",()=>{
   const q = input.value.trim();
-  results.innerHTML = "";
-  if(!q){ results.style.display="none"; return; }
-
-  const hits = searchable.filter(p => String(p.title).includes(q)).slice(0, 30);
-  results.style.display = "block";
-
-  if(hits.length === 0){
-    const div=document.createElement("div");
-    div.className="result-item";
-    div.textContent="該当なし";
-    results.appendChild(div);
+  results.innerHTML="";
+  if(!q){
+    results.style.display="none";
     return;
   }
+
+  const hits = searchable.filter(p=>p.title.includes(q));
+  results.style.display="block";
 
   hits.forEach(p=>{
     const div=document.createElement("div");
     div.className="result-item";
     div.textContent=p.title;
-    div.onclick=()=>{ p.marker.openPopup(); };
+    div.onclick=()=>{
+      p.marker.openPopup();
+    };
     results.appendChild(div);
   });
 });
+
 </script>
 </body>
 </html>
