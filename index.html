@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FiveM共有マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+html,body{height:100%;margin:0;}
+#map{height:100%;width:100%;}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const imgWidth = 1457;
+const imgHeight = 2048;
+
+const map = L.map('map',{
+  crs: L.CRS.Simple,
+  minZoom: -2,
+  maxZoom: 4
+});
+
+const bounds = [[0,0],[imgHeight,imgWidth]];
+L.imageOverlay('./map.png', bounds).addTo(map);
+map.fitBounds(bounds);
+
+const layerControl = L.control.layers(null,null,{collapsed:false}).addTo(map);
+const layers = {};
+
+function addPoint(p){
+  const cat = p.category || "未分類";
+  if(!layers[cat]){
+    layers[cat] = L.layerGroup();
+    layers[cat].addTo(map);
+    layerControl.addOverlay(layers[cat], cat);
+  }
+  L.marker([p.y, p.x])
+    .bindPopup(`<b>${p.title}</b><br>${p.note || ""}`)
+    .addTo(layers[cat]);
+}
+
+fetch('./points.json')
+  .then(r=>r.json())
+  .then(points=>points.forEach(addPoint));
+
+map.on('click', (e) => {
+  const x = Math.round(e.latlng.lng);
+  const y = Math.round(e.latlng.lat);
+  L.popup().setLatLng(e.latlng).setContent(`x: ${x}<br>y: ${y}`).openOn(map);
+});
+</script>
+</body>
+</html>
