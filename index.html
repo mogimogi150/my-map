@@ -11,83 +11,137 @@
 html,body{height:100%;margin:0;background:#dcdcdc;}
 #map{height:100%;width:100%;}
 
-/* ===== 調整用 ===== */
+/* =========================
+   調整用（ここだけ触ればOK）
+========================= */
 :root{
+  /* 検索UI */
   --search-left:120px;
   --search-top:18px;
-  --search-w:560px;
+  --search-w:560px;      /* searchbox.png の表示幅 */
+  --search-h:56px;       /* 見た目の高さ（画像に合わせる） */
 
-  --input-left:170px;
-  --input-top:24px;
-  --input-w:330px;
-  --input-h:40px;
+  /* input を画像内の「比率」で置く（ズレに強い） */
+  --input-x:0.30;        /* 0〜1：左から何% */
+  --input-y:0.50;        /* 0〜1：上から何%（0.5 = 真ん中） */
+  --input-w:0.58;        /* 0〜1：幅の比率 */
+  --input-h:38px;        /* 高さはpxでOK */
 
+  /* 右パネル */
   --panel-right:20px;
   --panel-top:18px;
   --panel-w:280px;
+  --panel-h:520px;       /* 見た目の高さ（画像に合わせる） */
 
-  --pin-w:65px;
+  /* パネル中の項目配置 */
+  --cat-left:30px;
+  --cat-top:80px;
+  --cat-gap:15px;
+  --cat-font:18px;
+  --check-size:22px;
 
+  /* ロゴ */
   --logo-left:20px;
   --logo-bottom:20px;
   --logo-w:160px;
+
+  /* ピン */
+  --pin-w:65px;
+  --pin-label-top:12px;  /* 数字の縦位置 */
+  --pin-font:16px;
+
+  /* ピンの “刺さる位置” 微調整（px） */
+  --pin-anchor-x:0px;    /* 左右補正 */
+  --pin-anchor-y:0px;    /* 上下補正 */
 }
 
-/* ===== 検索UI ===== */
+*{box-sizing:border-box;}
+img{display:block;max-width:none;height:auto;}
+
+/* =========================
+   検索UI（背景をdivにして潰れ/ズレを防ぐ）
+========================= */
 .search-ui{
   position:fixed;
   left:var(--search-left);
   top:var(--search-top);
   z-index:9999;
-}
-.search-ui img{
+
   width:var(--search-w);
-  height:auto;
-  display:block;
+  height:var(--search-h);
 }
+
+.search-ui .search-bg{
+  position:absolute;
+  inset:0;
+  background:url("./searchbox.png") center/contain no-repeat;
+  pointer-events:none;
+}
+
 .search-ui input{
   position:absolute;
-  left:var(--input-left);
-  top:var(--input-top);
-  width:var(--input-w);
-  height:var(--input-h);
+
+  /* 比率で置く：画像サイズ変えてもズレにくい */
+  left: calc(var(--search-w) * var(--input-x));
+  top:  calc(var(--search-h) * var(--input-y));
+  transform: translateY(-50%);
+
+  width: calc(var(--search-w) * var(--input-w));
+  height: var(--input-h);
+
   border:none;
   outline:none;
   background:transparent;
   font-size:18px;
+  line-height: var(--input-h);
+  padding:0;
 }
 
-/* ===== パネル ===== */
+/* =========================
+   パネル（背景をdivに）
+========================= */
 .category-panel{
   position:fixed;
   right:var(--panel-right);
   top:var(--panel-top);
   z-index:9998;
-}
-.category-panel img{
+
   width:var(--panel-w);
-  height:auto;
-  display:block;
+  height:var(--panel-h);
 }
+
+.category-panel .panel-bg{
+  position:absolute;
+  inset:0;
+  background:url("./panel-bg.png") center/contain no-repeat;
+  pointer-events:none;
+}
+
 .cat-items{
   position:absolute;
-  top:80px;
-  left:30px;
-  font-size:18px;
+  top:var(--cat-top);
+  left:var(--cat-left);
+  font-size:var(--cat-font);
+  color:#111;
 }
+
 .cat-row{
   display:flex;
   align-items:center;
   gap:10px;
-  margin-bottom:15px;
+  margin-bottom:var(--cat-gap);
   cursor:pointer;
-}
-.cat-row img{
-  width:22px;
-  height:22px;
+  user-select:none;
 }
 
-/* ===== ロゴ ===== */
+.cat-row img{
+  width:var(--check-size);
+  height:var(--check-size);
+}
+
+/* =========================
+   ロゴ
+========================= */
 .fixed-logo{
   position:fixed;
   left:var(--logo-left);
@@ -99,25 +153,38 @@ html,body{height:100%;margin:0;background:#dcdcdc;}
   height:auto;
 }
 
-/* ===== ピン ===== */
+/* =========================
+   ピン（当たり判定/刺さる位置を安定）
+========================= */
+.leaflet-marker-icon{background:transparent;border:0;} /* Leafletの枠影響を排除 */
+
 .pinwrap{
   position:relative;
-  transform:translate(-50%,-100%);
+  width: var(--pin-w);
+  transform: translate(
+    calc(-50% + var(--pin-anchor-x)),
+    calc(-100% + var(--pin-anchor-y))
+  );
 }
+
 .pinwrap img{
   width:var(--pin-w);
   height:auto;
   display:block;
 }
+
 .pinlabel{
   position:absolute;
-  top:12px;
+  top:var(--pin-label-top);
   left:50%;
   transform:translateX(-50%);
   color:#fff;
   font-weight:bold;
   text-shadow:0 2px 6px #000;
-  font-size:16px;
+  font-size:var(--pin-font);
+  line-height:1;
+  white-space:nowrap;
+  pointer-events:none;
 }
 </style>
 </head>
@@ -125,17 +192,17 @@ html,body{height:100%;margin:0;background:#dcdcdc;}
 <body>
 
 <div class="search-ui">
-  <img src="./searchbox.png">
+  <div class="search-bg"></div>
   <input id="q" type="text" placeholder="番号検索…">
 </div>
 
 <div class="category-panel">
-  <img src="./panel-bg.png">
+  <div class="panel-bg"></div>
   <div class="cat-items" id="catItems"></div>
 </div>
 
 <div class="fixed-logo">
-  <img src="./ROGO.png">
+  <img src="./ROGO.png" alt="logo">
 </div>
 
 <div id="map"></div>
@@ -195,17 +262,28 @@ categories.forEach(cat=>{
   };
 });
 
-/* ===== ピン ===== */
+/* ===== ピン =====
+   iconSize/iconAnchor を「実サイズ」に合わせて当たり判定と位置を安定させる
+*/
+function getPinW(){
+  const w = getComputedStyle(document.documentElement).getPropertyValue('--pin-w').trim();
+  const n = parseFloat(w);
+  return Number.isFinite(n) ? n : 65;
+}
+
 function pinIcon(number){
+  const w = getPinW();
+  const h = w; // pin.png が縦長ならここを調整（例: w*1.25）
   return L.divIcon({
-    className:"",
+    className:"pin-icon",
     html:`
       <div class="pinwrap">
-        <img src="./pin.png">
+        <img src="./pin.png" alt="">
         <div class="pinlabel">${number||""}</div>
       </div>
     `,
-    iconSize:[1,1]
+    iconSize:[w, h],         // 当たり判定
+    iconAnchor:[w/2, h]      // 下端中央が「刺さる点」
   });
 }
 
@@ -214,12 +292,11 @@ fetch("./points.json")
   .then(r=>r.json())
   .then(points=>{
     points.forEach(p=>{
-      const marker=L.marker([p.y,p.x],{
+      L.marker([p.y,p.x],{
         icon:pinIcon(p.number||p.title)
       }).addTo(layers[p.category||"修理台"]);
     });
   });
-
 </script>
 </body>
 </html>
