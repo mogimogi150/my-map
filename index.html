@@ -7,26 +7,87 @@
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
-<style>
-html,body{height:100%;margin:0;background:#0f141a;}
-#map{height:100%;width:100%;}
+<!-- かわいいフォント -->
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@700&display=swap" rel="stylesheet">
 
+<style>
+html,body{
+  height:100%;
+  margin:0;
+  background:#ffe6f2;
+  font-family:"M PLUS Rounded 1c", sans-serif;
+}
+
+#map{
+  height:100%;
+  width:100%;
+}
+
+/* 検索ボックス */
 .searchbox{
-  position:absolute; top:12px; left:12px; z-index:9999;
-  width:min(340px, calc(100vw - 20px));
-  padding:12px;
-  border-radius:12px;
-  background:rgba(255,255,255,0.95);
-  box-shadow:0 6px 20px rgba(0,0,0,0.25);
-  font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+  position:absolute;
+  top:12px;
+  left:12px;
+  z-index:9999;
+  width:320px;
+  padding:14px;
+  border-radius:20px;
+  background:rgba(255,255,255,0.9);
+  border:3px solid #ff1493;
+  box-shadow:0 0 15px #ff69b4;
 }
+
 .searchbox input{
-  width:100%; font-size:14px; padding:8px 10px;
-  border:1px solid #ccc; border-radius:8px; outline:none;
+  width:100%;
+  padding:8px;
+  border-radius:12px;
+  border:2px solid #ff1493;
+  outline:none;
+  font-size:14px;
 }
-.results{ margin-top:8px; max-height:220px; overflow:auto; display:none; }
-.result-item{ padding:6px; cursor:pointer; border-radius:8px; }
-.result-item:hover{ background:#f2f2f2; }
+
+/* ===== 右側カテゴリデザイン ===== */
+.leaflet-control-layers{
+  background:rgba(255,255,255,0.9);
+  border-radius:20px;
+  padding:16px;
+  border:3px solid #ff1493;
+  box-shadow:0 0 20px #ff69b4;
+  font-size:16px;
+}
+
+/* 各カテゴリ行 */
+.leaflet-control-layers label{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin:10px 0;
+  font-weight:700;
+  color:#ff1493;
+}
+
+/* ハートチェックボックス */
+.leaflet-control-layers input[type="checkbox"]{
+  appearance:none;
+  width:22px;
+  height:22px;
+  cursor:pointer;
+  position:relative;
+}
+
+.leaflet-control-layers input[type="checkbox"]::before{
+  content:"♡";
+  font-size:22px;
+  color:#ff1493;
+  position:absolute;
+  top:-3px;
+  left:0;
+}
+
+.leaflet-control-layers input[type="checkbox"]:checked::before{
+  content:"💖";
+  color:#ff1493;
+}
 </style>
 </head>
 
@@ -34,32 +95,44 @@ html,body{height:100%;margin:0;background:#0f141a;}
 
 <div class="searchbox">
   <input id="q" type="text" placeholder="番号検索 (例: 4020)" />
-  <div id="results" class="results"></div>
 </div>
 
 <div id="map"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
 
+<script>
 const imgWidth = 1457;
 const imgHeight = 2048;
 
-const map = L.map('map',{ crs: L.CRS.Simple, minZoom: -2, maxZoom: 4 });
+const map = L.map('map',{
+  crs: L.CRS.Simple,
+  minZoom: -2,
+  maxZoom: 4
+});
+
 const bounds = [[0,0],[imgHeight,imgWidth]];
 L.imageOverlay('./map.png', bounds).addTo(map);
 map.fitBounds(bounds);
 
-// 右側カテゴリ固定
 const layerControl = L.control.layers(null,null,{collapsed:false}).addTo(map);
 const layers = {};
-const categories = ["修理台","受注場所","武器クラフト","犯罪クラフト","薬素材","精製所","売人場所"];
+
+const categories = [
+  "修理台",
+  "受注場所",
+  "武器クラフト",
+  "犯罪クラフト",
+  "薬素材",
+  "精製所",
+  "売人場所"
+];
+
 categories.forEach(cat=>{
   layers[cat] = L.layerGroup().addTo(map);
-  layerControl.addOverlay(layers[cat], cat);
+  layerControl.addOverlay(layers[cat],cat);
 });
 
-// カテゴリ色
 const colors = {
   "修理台": "#FF3B30",
   "受注場所": "#000000",
@@ -70,23 +143,17 @@ const colors = {
   "売人場所": "#AF52DE"
 };
 
-// 🔹 最初の涙型ピン + 黒フチ
 function makePin(color, number){
   const svg = `
   <svg xmlns="http://www.w3.org/2000/svg" width="44" height="60" viewBox="0 0 44 60">
-    <!-- 本体（黒フチ付き） -->
     <path d="M22 58S40 40 40 22A18 18 0 1 0 4 22c0 18 18 36 18 36z"
           fill="${color}"
-          stroke="#000000"
+          stroke="#000"
           stroke-width="2"/>
-
-    <!-- 中央白丸 -->
     <circle cx="22" cy="23" r="9"
             fill="white"
             stroke="#000"
             stroke-width="1"/>
-
-    <!-- 番号 -->
     <text x="22" y="27"
           text-anchor="middle"
           font-size="11"
@@ -105,52 +172,17 @@ function makePin(color, number){
   });
 }
 
-const searchable = [];
-
-function addPoint(p){
-  const cat = p.category;
-  const color = colors[cat] || "#8E8E93";
-
-  const marker = L.marker([p.y, p.x], {
-    icon: makePin(color, p.title)
-  }).bindPopup(`<b>${p.title}</b>`);
-
-  marker.addTo(layers[cat]);
-
-  searchable.push({
-    title:p.title,
-    marker:marker
-  });
-}
-
 fetch('./points.json')
   .then(r=>r.json())
-  .then(points=>points.forEach(addPoint));
-
-// 検索
-const input = document.getElementById("q");
-const results = document.getElementById("results");
-
-input.addEventListener("input",()=>{
-  const q = input.value.trim();
-  results.innerHTML="";
-  if(!q){
-    results.style.display="none";
-    return;
-  }
-
-  const hits = searchable.filter(p=>p.title.includes(q));
-  results.style.display="block";
-
-  hits.forEach(p=>{
-    const div=document.createElement("div");
-    div.className="result-item";
-    div.textContent=p.title;
-    div.onclick=()=>{ p.marker.openPopup(); };
-    results.appendChild(div);
+  .then(points=>{
+    points.forEach(p=>{
+      const color = colors[p.category] || "#8E8E93";
+      L.marker([p.y, p.x], {
+        icon: makePin(color, p.title)
+      }).addTo(layers[p.category]);
+    });
   });
-});
-
 </script>
+
 </body>
 </html>
