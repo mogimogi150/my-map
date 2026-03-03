@@ -1,13 +1,12 @@
 [
-  { "category": "修理台", "title": "4020", "note": "", "x": 730, "y": 1020 },
-  { "category": "修理台", "title": "3008", "note": "", "x": 730, "y": 1020 },
-  { "category": "修理台", "title": "7172", "note": "", "x": 730, "y": 1020 },
-  { "category": "修理台", "title": "7231", "note": "", "x": 730, "y": 1020 },
-  { "category": "修理台", "title": "7283", "note": "", "x": 730, "y": 1020 },
-  { "category": "修理台", "title": "9038", "note": "", "x": 730, "y": 1020 },
-  { "category": "修理台", "title": "7299", "note": "", "x": 730, "y": 1020 },
-  { "category": "修理台", "title": "1012", "note": "", "x": 730, "y": 1020 },
-  { "category": "修理台", "title": "9092", "note": "", "x": 730, "y": 1020 },
-  { "category": "修理台", "title": "9007", "note": "", "x": 730, "y": 1020 },
-  { "category": "修理台", "title": "8417", "note": "", "x": 730, "y": 1020 }
+  { "category": "修理台", "title": "4020", "note": "", "x": 768, "y": 1189 },
+  { "category": "修理台", "title": "3008", "note": "", "x": 993, "y": 1343 },
+  { "category": "修理台", "title": "7172", "note": "", "x": 427, "y": 693 },
+  { "category": "修理台", "title": "7231", "note": "", "x": 612, "y": 751 },
+  { "category": "修理台", "title": "7283", "note": "", "x": 763, "y": 751 },
+  { "category": "修理台", "title": "9038", "note": "", "x": 635, "y": 571 },
+  { "category": "修理台", "title": "7299", "note": "", "x": 834, "y": 751 },
+  { "category": "修理台", "title": "1012", "note": "", "x": 693, "y": 1776 },
+  { "category": "修理台", "title": "9092", "note": "", "x": 667, "y": 520 },
+  { "category": "修理台", "title": "9007", "note": "", "x": 658, "y": 467 }
 ]
