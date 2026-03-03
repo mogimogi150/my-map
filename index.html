@@ -6,353 +6,338 @@
 <title>FiveM共有マップ</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700&display=swap" rel="stylesheet">
 
 <style>
+/* =========================
+   ✅ ここをいじると必ず動く（位置・サイズ）
+   ========================= */
 :root{
-  /* =============================
-     🔧 ここだけ触れば調整できる
-     ============================= */
+  /* 検索枠（画像） */
+  --search-left: 110px;   /* 右へ=増やす */
+  --search-top: 18px;     /* 下へ=増やす */
+  --search-width: 560px;  /* 画像の表示幅 */
 
-  /* 検索枠（画像）の表示位置 */
-  --search-left: 110px;   /* ← 右に寄せたいなら増やす */
-  --search-top: 24px;     /* ← 下に下げたいなら増やす */
-  --search-width: 520px;
+  /* 検索入力（文字の当たり判定＋入力位置） */
+  --input-left: 150px;    /* 文字を右へ=増やす */
+  --input-top: 34px;      /* 文字を下へ=増やす */
+  --input-height: 44px;
+  --input-right-pad: 72px;
 
-  /* 検索入力欄（画像の中のテキスト位置） */
-  --input-left: 170px;    /* ← 文字が左すぎ/右すぎなら調整 */
-  --input-top: 44px;      /* ← 文字が上すぎ/下すぎなら調整 */
-  --input-height: 42px;
-  --input-right-pad: 70px; /* 右端の虫眼鏡丸に被らないように */
+  /* 右パネル（カテゴリ枠） */
+  --panel-right: 14px;    /* 左へ寄せたい=増やす */
+  --panel-top: 14px;      /* 下げたい=増やす */
+  --panel-width: 280px;
 
-  /* ピンサイズ（短くする） */
-  --pin-width: 56px;
-  --pin-height: 64px;     /* ← ここを小さくすると“短く”なる */
-  --pin-font: 13px;
-  --pin-text-top: 22px;   /* ← 番号の位置（上/下） */
+  /* ピン（画像） */
+  --pin-w: 56px;
+  --pin-h: 62px;          /* “短くしたい”なら下げる */
+  --pin-text-size: 13px;
+  --pin-text-top: 16px;   /* 数字の上下位置（下げる=増やす） */
 
-  /* 右パネル */
-  --panel-width: 260px;
+  /* 左下ロゴ */
+  --logo-left: 14px;
+  --logo-bottom: 14px;
+  --logo-width: 150px;
 }
 
-html,body{
-  height:100%;
-  margin:0;
-  background:#e9e3f6;
-  font-family:"Zen Kaku Gothic New",system-ui,-apple-system,"Segoe UI",sans-serif;
-}
+html,body{height:100%;margin:0;}
+#map{height:100%;width:100%; background:#ddd;}
 
-#map{height:100%;width:100%;}
+/* Leafletのズームボタンが上にあるので、検索枠と被る場合の保険 */
+.leaflet-top.leaflet-left{ margin-top: 8px; margin-left: 8px; }
 
-/* ===== 検索UI（画像） ===== */
-.search-ui{
+/* =========================
+   検索UI（画像ベース）
+   ========================= */
+.searchbox{
   position:absolute;
-  top:var(--search-top);
-  left:var(--search-left);
-  z-index:9999;
-  width:var(--search-width);
-  pointer-events:none; /* 画像自体はクリック無効 */
+  left: var(--search-left);
+  top: var(--search-top);
+  width: var(--search-width);
+  height: 120px;                 /* 検索枠画像の高さに合わせて調整 */
+  z-index: 9999;
+  pointer-events: none;          /* 画像には触れない */
 }
-.search-ui img{
-  width:100%;
-  height:auto;
-  display:block;
-  user-select:none;
+.searchbox .bg{
+  position:absolute; inset:0;
+  background: url("./searchbox.png") no-repeat left top / 100% 100%;
+  pointer-events: none;
 }
-
-/* 入力欄だけクリックできるようにする */
-.search-ui input{
-  pointer-events:auto;
+.searchbox input{
   position:absolute;
-  left:var(--input-left);
-  top:var(--input-top);
-  width:calc(100% - var(--input-left) - var(--input-right-pad));
-  height:var(--input-height);
-
-  border:none;
-  outline:none;
-  background:transparent;
-
-  font-size:16px;
-  font-weight:700;
-  color:#3b1a55;
-  text-shadow:0 1px 0 rgba(255,255,255,0.35);
+  left: var(--input-left);
+  top: var(--input-top);
+  width: calc(100% - var(--input-left) - 18px);
+  height: var(--input-height);
+  padding: 0 var(--input-right-pad) 0 14px;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 18px;
+  color:#2b2b2b;
+  pointer-events: auto;          /* 入力欄だけ触れる */
 }
+.searchbox input::placeholder{ color:#666; }
 
+/* 検索結果 */
 .results{
   position:absolute;
-  top:calc(var(--search-top) + 96px);
-  left:var(--search-left);
-  z-index:9999;
-  width:calc(var(--search-width) - 20px);
-
-  max-height:240px;
+  left: var(--search-left);
+  top: calc(var(--search-top) + 110px);
+  width: calc(var(--search-width) - 20px);
+  max-height: 260px;
   overflow:auto;
+  background: rgba(255,255,255,0.95);
+  border-radius: 14px;
+  padding: 10px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.18);
   display:none;
-
-  background:rgba(255,255,255,0.96);
-  border-radius:16px;
-  padding:10px;
-  box-shadow:0 10px 24px rgba(0,0,0,0.18);
+  z-index: 9999;
+  pointer-events: auto;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
 }
-.result-item{
-  padding:8px 10px;
-  border-radius:12px;
-  cursor:pointer;
-}
-.result-item:hover{background:#f0e7ff;}
+.result-item{padding:10px 8px;border-radius:12px;cursor:pointer;}
+.result-item:hover{background:#f1f1f1;}
+.result-title{font-weight:700;font-size:14px;}
+.result-meta{font-size:12px;color:#555;margin-top:2px;}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;background:#eee;font-size:11px;margin-left:6px;}
 
-/* ===== ロゴ固定 ===== */
-.logo-fixed{
-  position:fixed;
-  left:14px;
-  bottom:14px;
-  z-index:99999;
-  pointer-events:none;
-}
-.logo-fixed img{width:160px;height:auto;}
-
-/* Leaflet標準の右カテゴリは非表示 */
-.leaflet-control-layers{display:none !important;}
-
-/* ===== 右カテゴリパネル ===== */
+/* =========================
+   右カテゴリパネル（画像ベース）
+   ========================= */
 .right-panel{
-  position:fixed;
-  right:14px;
-  top:14px;
-  z-index:99999;
-  width:var(--panel-width);
-
-  background:url('./panel-bg.png') no-repeat center/cover;
-  border-radius:18px;
-  padding:16px 14px 14px;
-  box-shadow:0 12px 28px rgba(0,0,0,0.25);
+  position:absolute;
+  right: var(--panel-right);
+  top: var(--panel-top);
+  width: var(--panel-width);
+  height: 360px;
+  z-index: 9999;
+  background: url("./panel-bg.png") no-repeat center / 100% 100%;
+  padding: 18px 18px 18px 22px;
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
 }
-
-.panel-title{
-  font-weight:800;
-  font-size:16px;
-  color:#2b1743;
-  margin:0 0 10px;
-  text-align:left;
+.right-panel h3{
+  margin: 8px 0 10px;
+  font-size: 16px;
 }
-
-.cat-list{display:flex;flex-direction:column;gap:10px;}
-
+.cat-list{ margin: 0; padding: 0; list-style:none; }
 .cat-item{
   display:flex;
   align-items:center;
-  gap:10px;
-  cursor:pointer;
+  gap: 10px;
+  padding: 8px 6px;
   user-select:none;
-  padding:6px 6px;
-  border-radius:12px;
 }
-.cat-item:hover{background:rgba(255,255,255,0.18);}
+.cat-item input{ display:none; } /* 本体は隠す */
 
 .cat-check{
-  width:26px;
-  height:26px;
-  flex:0 0 26px;
-  background-size:contain;
-  background-repeat:no-repeat;
-  background-position:center;
+  width: 26px; height: 26px;
+  flex: 0 0 26px;
+  background: url("./check-off.png") no-repeat center / 100% 100%;
 }
+.cat-item input:checked + .cat-check{
+  background-image: url("./check-on.png");
+}
+.cat-name{ font-size: 14px; font-weight: 700; color:#111; }
 
-.cat-name{
-  font-weight:700;
-  font-size:15px;
-  color:#2b1743;
-  text-shadow:0 1px 0 rgba(255,255,255,0.35);
+/* =========================
+   左下ロゴ固定
+   ========================= */
+.logo-fixed{
+  position:absolute;
+  left: var(--logo-left);
+  bottom: var(--logo-bottom);
+  z-index: 9999;
+  pointer-events:none;
+}
+.logo-fixed img{ width: var(--logo-width); height:auto; display:block; }
+
+/* =========================
+   ピン（画像 + 数字）
+   ========================= */
+.pin-wrap{
+  position: relative;
+  width: var(--pin-w);
+  height: var(--pin-h);
+}
+.pin-wrap img{
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* 伸び防止 */
+  display:block;
+}
+.pin-num{
+  position:absolute;
+  left: 50%;
+  top: var(--pin-text-top);
+  transform: translateX(-50%);
+  font-size: var(--pin-text-size);
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.75);
+  letter-spacing: 0.5px;
+  pointer-events:none;
 }
 </style>
 </head>
 
 <body>
-
-<!-- 検索UI（画像＋入力） -->
-<div class="search-ui">
-  <img src="./searchbox.png" alt="">
-  <input id="q" type="text" placeholder="番号検索..." />
+<!-- 検索 -->
+<div class="searchbox">
+  <div class="bg"></div>
+  <input id="q" type="text" placeholder="番号 検索…" />
 </div>
 <div id="results" class="results"></div>
 
 <!-- 右カテゴリ -->
-<div class="right-panel">
-  <div class="panel-title">カテゴリ</div>
-  <div id="catList" class="cat-list"></div>
+<div class="right-panel" id="panel">
+  <h3>カテゴリ</h3>
+  <ul class="cat-list" id="catList"></ul>
 </div>
 
-<!-- ロゴ -->
-<div class="logo-fixed"><img src="./ROGO.png" alt=""></div>
+<!-- 左下ロゴ -->
+<div class="logo-fixed">
+  <img src="./ROGO.png" alt="logo" />
+</div>
 
 <div id="map"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-// map.png のサイズ
+// ===== 画像サイズ（map.png）=====
 const imgWidth = 1457;
 const imgHeight = 2048;
 
-const map = L.map('map',{
-  crs: L.CRS.Simple,
-  minZoom:-2,
-  maxZoom:4
-});
+// ===== カテゴリ一覧（右側に常に出す）=====
+const categories = [
+  "修理台",
+  "受注場所",
+  "武器クラフト",
+  "犯罪クラフト",
+  "薬素材",
+  "精製所",
+  "売人場所"
+];
 
+// ===== Leaflet Map =====
+const map = L.map('map',{ crs:L.CRS.Simple, minZoom:-2, maxZoom:4 });
 const bounds = [[0,0],[imgHeight,imgWidth]];
 L.imageOverlay('./map.png', bounds).addTo(map);
 map.fitBounds(bounds);
 
-// カテゴリ
-const categories = [
-  "修理台","受注場所","武器クラフト",
-  "犯罪クラフト","薬素材","精製所","売人場所"
-];
-
-// レイヤー（最初は全部ON）
+// ===== レイヤー（カテゴリごと）=====
 const layers = {};
-categories.forEach(cat => {
-  layers[cat] = L.layerGroup().addTo(map);
+categories.forEach(cat => layers[cat] = L.layerGroup().addTo(map));
+
+// ===== 右側カテゴリUI（画像チェック）=====
+const catList = document.getElementById("catList");
+categories.forEach(cat=>{
+  const li = document.createElement("li");
+  li.className="cat-item";
+  li.innerHTML = `
+    <label style="display:flex;align-items:center;gap:10px;cursor:pointer;width:100%;">
+      <input type="checkbox" checked data-cat="${cat}">
+      <span class="cat-check"></span>
+      <span class="cat-name">${cat}</span>
+    </label>
+  `;
+  catList.appendChild(li);
+
+  const cb = li.querySelector("input");
+  cb.addEventListener("change", ()=>{
+    if(cb.checked) layers[cat].addTo(map);
+    else map.removeLayer(layers[cat]);
+  });
 });
 
-// ===== 画像ピン（比率固定）+番号 =====
+// ===== ピンアイコン（画像 + 数字）=====
 function makeImagePin(number){
-  const styles = getComputedStyle(document.documentElement);
-  const W = parseInt(styles.getPropertyValue('--pin-width'));
-  const H = parseInt(styles.getPropertyValue('--pin-height'));
-  const FS = styles.getPropertyValue('--pin-font').trim();
-  const TOP = styles.getPropertyValue('--pin-text-top').trim();
-
   const html = `
-    <div style="position:relative;width:${W}px;height:${H}px;">
-      <img src="./pin.png"
-           style="width:100%;height:100%;display:block;object-fit:contain;">
-      <div style="
-        position:absolute;
-        top:${TOP};
-        left:0;
-        width:100%;
-        text-align:center;
-        font-weight:800;
-        color:#ffffff;
-        text-shadow: 0 2px 0 rgba(0,0,0,0.85), 0 0 10px rgba(0,0,0,0.6);
-        font-size:${FS};
-        letter-spacing:0.5px;
-        pointer-events:none;">
-        ${number}
-      </div>
+    <div class="pin-wrap">
+      <img src="./pin.png" alt="pin">
+      <div class="pin-num">${number ?? ""}</div>
     </div>`;
-
   return L.divIcon({
     className:"",
     html,
-    iconSize:[W,H],
-    iconAnchor:[W/2, H-2],
-    popupAnchor:[0, -(H-6)]
+    iconSize:[parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pin-w')),
+              parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pin-h'))],
+    iconAnchor:[parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pin-w'))/2,
+                parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pin-h'))],
+    popupAnchor:[0,-50]
   });
 }
 
-// ===== points.json 読み込み =====
+// ===== 検索 =====
 const searchable = [];
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, s => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[s]));
+}
+
+function addPoint(p){
+  const cat = p.category || "未分類";
+  const title = p.title || "無題";
+  const note = p.note || "";
+
+  if(!layers[cat]){
+    layers[cat] = L.layerGroup().addTo(map);
+    // 右側UIは categories に入れてるものだけ表示（必要なら増やせる）
+  }
+
+  const marker = L.marker([p.y, p.x], { icon: makeImagePin(title) })
+    .bindPopup(`<b>${escapeHtml(title)}</b><br>${escapeHtml(note)}<br><span class="badge">${escapeHtml(cat)}</span>`);
+
+  marker.addTo(layers[cat]);
+
+  const text = (title + " " + note + " " + cat).toLowerCase();
+  searchable.push({ cat, title, note, x:p.x, y:p.y, marker, text });
+}
+
 fetch('./points.json')
   .then(r=>r.json())
-  .then(points=>{
-    points.forEach(p=>{
-      const cat = p.category || "未分類";
-      const title = String(p.title || "");
-      const marker = L.marker([p.y,p.x],{ icon: makeImagePin(title) })
-        .bindPopup(`<b>${title}</b><br>${cat}`);
+  .then(points=>points.forEach(addPoint))
+  .catch(()=>{});
 
-      if(!layers[cat]){
-        layers[cat] = L.layerGroup().addTo(map);
-      }
-      marker.addTo(layers[cat]);
+// クリックで座標表示
+map.on('click', (e)=>{
+  const x = Math.round(e.latlng.lng);
+  const y = Math.round(e.latlng.lat);
+  L.popup().setLatLng(e.latlng).setContent(`x: ${x}<br>y: ${y}`).openOn(map);
+});
 
-      searchable.push({ ...p, marker });
-    });
-  });
-
-// ===== 右パネル：チェック画像でON/OFF =====
-const catList = document.getElementById("catList");
-const state = {};
-
-function setCheck(el, on){
-  el.style.backgroundImage = on
-    ? "url('./check-on.png')"
-    : "url('./check-off.png')";
-}
-
-function renderCats(){
-  catList.innerHTML = "";
-  categories.forEach(cat=>{
-    if(state[cat] === undefined) state[cat] = true;
-
-    const row = document.createElement("div");
-    row.className = "cat-item";
-
-    const ck = document.createElement("div");
-    ck.className = "cat-check";
-    setCheck(ck, state[cat]);
-
-    const name = document.createElement("div");
-    name.className = "cat-name";
-    name.textContent = cat;
-
-    row.appendChild(ck);
-    row.appendChild(name);
-
-    row.onclick = ()=>{
-      state[cat] = !state[cat];
-      setCheck(ck, state[cat]);
-
-      if(state[cat]) layers[cat].addTo(map);
-      else map.removeLayer(layers[cat]);
-    };
-
-    catList.appendChild(row);
-  });
-}
-renderCats();
-
-// ===== 検索（番号） =====
+// 検索UI
 const input = document.getElementById("q");
 const results = document.getElementById("results");
 
-input.addEventListener("input",()=>{
-  const q = input.value.trim();
+input.addEventListener("input", ()=>{
+  const q = input.value.trim().toLowerCase();
   if(!q){
     results.style.display="none";
     results.innerHTML="";
     return;
   }
-
-  const hits = searchable.filter(p => String(p.title).includes(q)).slice(0, 30);
-
+  const hits = searchable.filter(p=>p.text.includes(q)).slice(0,20);
   results.innerHTML="";
   results.style.display="block";
 
-  if(hits.length === 0){
-    results.innerHTML = `<div class="result-item">該当なし</div>`;
+  if(hits.length===0){
+    results.innerHTML = `<div class="result-item"><div class="result-title">該当なし</div></div>`;
     return;
   }
 
   hits.forEach(p=>{
     const el = document.createElement("div");
     el.className="result-item";
-    el.textContent = `${p.title}（${p.category}）`;
-    el.onclick=()=>{
-      map.setView([p.y,p.x], Math.max(map.getZoom(), 2));
-
-      // カテゴリがOFFならON
-      if(p.category && layers[p.category] && !map.hasLayer(layers[p.category])){
-        layers[p.category].addTo(map);
-        state[p.category] = true;
-        renderCats();
-      }
-
+    el.innerHTML = `
+      <div class="result-title">${escapeHtml(p.title)}<span class="badge">${escapeHtml(p.cat)}</span></div>
+      <div class="result-meta">${escapeHtml(p.note || "")}</div>
+    `;
+    el.onclick = ()=>{
+      map.setView([p.y,p.x], Math.max(map.getZoom(), 1));
       p.marker.openPopup();
+      if(layers[p.cat] && !map.hasLayer(layers[p.cat])) layers[p.cat].addTo(map);
     };
     results.appendChild(el);
   });
@@ -360,6 +345,3 @@ input.addEventListener("input",()=>{
 </script>
 </body>
 </html>
-
-
-
