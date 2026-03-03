@@ -49,16 +49,14 @@ html,body{height:100%;margin:0;}
 /* =========================
    検索UI（画像ベース）
    ========================= */
-.searchbox::before{
-  content:"";
+.searchbox{
   position:absolute;
-  left:0; top:0;
-  width: var(--search-w);
-  height: var(--search-h);
-  background: url("./search.png") no-repeat;
-  background-size: contain;     /* ←これが重要：潰れない */
-  background-position: left top;
-  pointer-events:none;
+  left: var(--search-left);
+  top: var(--search-top);
+  width: var(--search-width);
+  height: 120px;                 /* 検索枠画像の高さに合わせて調整 */
+  z-index: 9999;
+  pointer-events: none;          /* 画像には触れない */
 }
 .searchbox .bg{
   position:absolute; inset:0;
@@ -347,4 +345,3 @@ input.addEventListener("input", ()=>{
 </script>
 </body>
 </html>
-
