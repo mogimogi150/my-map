@@ -14,37 +14,37 @@ html,body{height:100%;margin:0;background:#dcdcdc;}
 img{display:block;max-width:none;height:auto;}
 
 /* =========================================================
-   ここだけ触れば全部調整できる（初期値：スクショ基準で整えた）
+   ここだけ触れば全部調整できる（初期値：整えた）
 ========================================================= */
 :root{
-  /* [A] 検索UI（小さめ＆上中央寄り） */
-  --search-left:280px;     /* 右へ+ / 左へ- */
+  /* [A] 検索UI */
+  --search-left:260px;     /* 右へ+ / 左へ- */
   --search-top:10px;       /* 下へ+ / 上へ- */
-  --search-w:520px;        /* 大きくしたいならここ */
-  --search-h:58px;
+  --search-w:520px;        /* 横幅 */
+  --search-h:58px;         /* 高さ（見た目） */
   --search-scale:1.00;
 
-  /* 入力欄（検索枠の中の位置） */
-  --input-x:0.30;
-  --input-y:0.52;
-  --input-w:0.56;
+  /* 入力欄（画像内の位置） */
+  --input-x:0.30;          /* 0〜1：左からの比率 */
+  --input-y:0.52;          /* 0〜1：上からの比率（0.5=中央） */
+  --input-w:0.56;          /* 0〜1：入力幅の比率 */
   --input-h:36px;
   --input-font:16px;
 
-  /* [B] 右パネル（上すぎたので少し下げる＆サイズも控えめ） */
-  --panel-right:18px;      /* 左へ+ / 右へ- */
-  --panel-top:90px;        /* 下へ+ / 上へ- */
+  /* [B] 右パネル */
+  --panel-right:18px;
+  --panel-top:90px;
   --panel-w:260px;
   --panel-h:470px;
   --panel-scale:1.00;
 
-  /* パネル中身（背景と文字/チェックのズレはここ） */
-  --cat-left:22px;         /* 中身を右へ+ / 左へ- */
-  --cat-top:78px;          /* 中身を下へ+ / 上へ- */
+  /* パネル中身位置 */
+  --cat-left:22px;
+  --cat-top:78px;
   --cat-gap:12px;
   --cat-font:16px;
 
-  /* チェックボックス */
+  /* チェックサイズ */
   --check-size:22px;
 
   /* [C] 左下ロゴ */
@@ -53,19 +53,18 @@ img{display:block;max-width:none;height:auto;}
   --logo-w:120px;
   --logo-scale:1.00;
 
-  /* [D] ピン（スクショの巨大化対策：小さめ固定） */
-  --pin-w:26px;
-  --pin-scale:1.00;
+  /* [D] ピン（pin.pngが巨大でもここで強制制御） */
+  --pin-w:24px;            /* ← ピンの大きさはここだけ */
   --pin-label-top:6px;
   --pin-font:10px;
 
-  /* ピン刺さる点の微調整（ズレたらここを最後に触る） */
+  /* ピンの刺さる点 微調整（必要なら最後に） */
   --pin-anchor-x:0px;
   --pin-anchor-y:0px;
 }
 
 /* =========================
-   検索UI
+   検索UI（imgタグをやめて背景で表示）
 ========================= */
 .search-ui{
   position:fixed;
@@ -99,7 +98,7 @@ img{display:block;max-width:none;height:auto;}
 }
 
 /* =========================
-   右パネル
+   右パネル（背景はdiv）
 ========================= */
 .category-panel{
   position:fixed;
@@ -134,7 +133,7 @@ img{display:block;max-width:none;height:auto;}
   height: calc(var(--check-size) + 6px);
 }
 
-/* ✅ チェックはdiv背景で切替（on/offでズレない） */
+/* ✅ check-on/off のズレ対策：img切替をやめてdiv背景で固定 */
 .chk{
   width:var(--check-size);
   height:var(--check-size);
@@ -155,23 +154,23 @@ img{display:block;max-width:none;height:auto;}
   transform: scale(var(--logo-scale));
   transform-origin:left bottom;
 }
-.fixed-logo img{ width:var(--logo-w); }
+.fixed-logo img{ width:var(--logo-w); height:auto; }
 
 /* =========================
-   ピン
+   ピン（pin.pngが巨大でもCSSで強制的に小さく）
 ========================= */
 .leaflet-marker-icon{background:transparent;border:0;}
 
 .pinwrap{
   position:relative;
-  width: calc(var(--pin-w) * var(--pin-scale));
+  width: var(--pin-w);
   transform: translate(
     calc(-50% + var(--pin-anchor-x)),
     calc(-100% + var(--pin-anchor-y))
   );
 }
 .pinwrap img{
-  width: calc(var(--pin-w) * var(--pin-scale));
+  width: var(--pin-w);     /* ←巨大pin.pngでも必ずこの幅に縮む */
   height:auto;
 }
 .pinlabel{
@@ -210,6 +209,9 @@ img{display:block;max-width:none;height:auto;}
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+/* =========================
+   Leaflet base
+========================= */
 const imgWidth = 1457;
 const imgHeight = 2048;
 
@@ -221,12 +223,21 @@ const map = L.map('map', {
 
 const bounds = [[0,0],[imgHeight,imgWidth]];
 L.imageOverlay("./map.png", bounds).addTo(map);
-
-/* 余白つきでフィット（スクショみたいに小さくなりすぎにくい） */
 map.fitBounds(bounds, { padding: [40, 40] });
 
-/* カテゴリ */
-const categories = ["修理台","受注場所","武器クラフト","犯罪クラフト","薬素材","精製所","売人場所"];
+/* =========================
+   Categories / Layers
+========================= */
+const categories = [
+  "修理台",
+  "受注場所",
+  "武器クラフト",
+  "犯罪クラフト",
+  "薬素材",
+  "精製所",
+  "売人場所"
+];
+
 const layers = {};
 const catItems = document.getElementById("catItems");
 
@@ -234,37 +245,44 @@ categories.forEach(cat=>{
   layers[cat] = L.layerGroup().addTo(map);
 
   const row = document.createElement("div");
-  row.className="cat-row";
+  row.className = "cat-row";
 
   const check = document.createElement("div");
-  check.className="chk on";
+  check.className = "chk on";
 
   const label = document.createElement("div");
-  label.textContent=cat;
+  label.textContent = cat;
 
   row.appendChild(check);
   row.appendChild(label);
   catItems.appendChild(row);
 
-  let visible=true;
-  row.onclick=()=>{
-    visible=!visible;
+  let visible = true;
+  row.onclick = () => {
+    visible = !visible;
     check.classList.toggle("on", visible);
     check.classList.toggle("off", !visible);
-    if(visible) layers[cat].addTo(map);
+    if (visible) layers[cat].addTo(map);
     else map.removeLayer(layers[cat]);
   };
 });
 
-/* ピン */
+/* =========================
+   Pin Icon
+   ★ pin.png が巨大でも、CSSの --pin-w で確実に縮む
+   ★ Leaflet側の当たり判定も --pin-w に合わせる
+========================= */
 function getVarNumber(name, fallback){
   const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
   const n = parseFloat(v);
   return Number.isFinite(n) ? n : fallback;
 }
+
 function pinIcon(number){
-  const w = getVarNumber('--pin-w', 26) * getVarNumber('--pin-scale', 1.0);
-  const h = w * 1.25; // pin.pngが縦長なので少しだけ縦長に当たり判定を取る
+  const w = getVarNumber('--pin-w', 24);
+
+  // 重要：巨大化を避けるため「正方形」で当たり判定を取る（まずこれが安定）
+  const h = w;
 
   return L.divIcon({
     className:"",
@@ -279,14 +297,16 @@ function pinIcon(number){
   });
 }
 
-/* データ */
+/* =========================
+   Load points
+========================= */
 fetch("./points.json")
   .then(r=>r.json())
   .then(points=>{
     points.forEach(p=>{
       const n = (p.number || p.title || "");
-      L.marker([p.y,p.x], { icon: pinIcon(n) })
-        .addTo(layers[p.category||"修理台"]);
+      L.marker([p.y, p.x], { icon: pinIcon(n) })
+        .addTo(layers[p.category || "修理台"]);
     });
   });
 </script>
