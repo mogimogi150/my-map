@@ -54,13 +54,14 @@ html,body{height:100%;margin:0;}
   left: var(--search-left);
   top: var(--search-top);
   width: var(--search-width);
-  height: 120px;                 /* 検索枠画像の高さに合わせて調整 */
+  aspect-ratio: 3 / 1; /* 1536:1024 */
+  height: auto;                 /* 検索枠画像の高さに合わせて調整 */
   z-index: 9999;
   pointer-events: none;          /* 画像には触れない */
 }
 .searchbox .bg{
   position:absolute; inset:0;
-  background: url("./searchbox.png") no-repeat left top / 100% 100%;
+  background: url("./searchbox.png") no-repeat center / 100% 100%;
   pointer-events: none;
 }
 .searchbox input{
@@ -345,6 +346,7 @@ input.addEventListener("input", ()=>{
 </script>
 </body>
 </html>
+
 
 
 
