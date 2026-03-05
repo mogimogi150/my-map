@@ -140,7 +140,14 @@ html,body{height:100%;margin:0;}
 .cat-item input:checked + .cat-check{
   background-image: url("./check-on.png");
 }
-.cat-name{ font-size: 14px; font-weight: 700; color:#111; }
+.cat-name{
+  font-size: 14px;
+  font-weight: 700;
+  color:#111;
+  position: relative;
+  left: 5px;   /* 右へ移動 */
+  top: 2px;    /* 下へ移動 */
+}
 
 /* =========================
    左下ロゴ固定
@@ -346,6 +353,7 @@ input.addEventListener("input", ()=>{
 </script>
 </body>
 </html>
+
 
 
 
