@@ -133,11 +133,11 @@ html,body{height:100%;margin:0;}
 .cat-item input{ display:none; } /* 本体は隠す */
 
 .cat-check{
-  width: 26px;
-  height: 26px;
+  width: 52px;
+  height: 52px;
   flex: 0 0 26px;
   background: url("./check-off.png") no-repeat center / 100% 100%;
-  margin-left: 80px;   /* ← 数字を増やすほど右へ */
+  margin-left: 100px;   /* ← 数字を増やすほど右へ */
 }
 .cat-item input:checked + .cat-check{
   background-image: url("./check-on.png");
@@ -147,7 +147,7 @@ html,body{height:100%;margin:0;}
   font-weight: 700;
   color:#111;
   position: relative;
-  left: 10px;   /* 右へ移動 */
+  left: 0px;   /* 右へ移動 */
   top: 0px;    /* 下へ移動 */
 }
 
@@ -355,6 +355,7 @@ input.addEventListener("input", ()=>{
 </script>
 </body>
 </html>
+
 
 
 
