@@ -138,7 +138,10 @@ html,body{height:100%;margin:0;}
   flex: 0 0 52px;
   background: url("./check-off.png") no-repeat center / 100% 100%;
   margin-left: 85px;   /* ← 数字を増やすほど右へ */
-  margin-top: 30px;
+  
+  position: relative;
+  top: 30px;   /* ← 下へ動かす */
+  left: 0px;  /* ← 右へ動かす */
 }
 .cat-item input:checked + .cat-check{
   background-image: url("./check-on.png");
@@ -357,6 +360,7 @@ input.addEventListener("input", ()=>{
 </script>
 </body>
 </html>
+
 
 
 
