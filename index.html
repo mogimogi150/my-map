@@ -186,14 +186,23 @@ html,body{height:100%;margin:0;}
   left: 50%;
   top: var(--pin-text-top);
   transform: translateX(calc(-50% + 4px));
+
   font-size: var(--pin-text-size);
   font-weight: 900;
   color: #fff;
-   text-shadow:
+
+  white-space: pre-line;   /* ← これ追加（\n改行用） */
+  text-align: center;      /* ← 中央揃え */
+
+  line-height: 1.1;        /* ← 行間調整 */
+  width: 60px;             /* ← 自動折返し防止 */
+
+  text-shadow:
     -2px -2px 0 #000,
      2px -2px 0 #000,
     -2px  2px 0 #000,
      2px  2px 0 #000;
+
   letter-spacing: 0.5px;
   pointer-events:none;
 }
@@ -363,6 +372,7 @@ input.addEventListener("input", ()=>{
 </script>
 </body>
 </html>
+
 
 
 
