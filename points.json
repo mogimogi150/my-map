@@ -40,11 +40,11 @@
   { "category": "薬素材", "title": "9295\nプソイド", "note": "プソイドエフェドリン", "x": 831, "y": 426 },
   { "category": "薬素材", "title": "9102\n炭酸", "note": "炭酸飲料", "x": 681, "y": 476 },
   { "category": "薬素材", "title": "7352\n水", "note": "自然の水", "x": 985, "y": 841 },
-  { "category": "精製所", "title": "10140\nLSD", "note": "", "x": 10, "y": 10 },
+  { "category": "精製所", "title": "10140\nLSD", "note": "", "x": 834, "y": 338 },
   { "category": "精製所", "title": "3035\nLSD", "note": "", "x": 10, "y": 10 },
   { "category": "精製所", "title": "1073\nLSD", "note": "", "x": 10, "y": 10 },
-  { "category": "精製所", "title": "9007\nエクスタシー", "note": "", "x": 10, "y": 10 },
-  { "category": "精製所", "title": "3063\nエクスタシー", "note": "", "x": 10, "y": 10 },
+  { "category": "精製所", "title": "9007\nエクスタシー", "note": "", "x": 668, "y": 472 },
+  { "category": "精製所", "title": "3063\nエクスタシー", "note": "", "x": 1114, "y": 1003 },
   { "category": "精製所", "title": "3033\nメス", "note": "", "x": 10, "y": 10 },
   { "category": "精製所", "title": "5064\nメス", "note": "", "x": 10, "y": 10 },
   { "category": "精製所", "title": "2027\nグリーンジェラート", "note": "", "x": 10, "y": 10 },
@@ -52,6 +52,7 @@
   { "category": "精製所", "title": "2027\nリーン", "note": "", "x": 10, "y": 10 },
   { "category": "精製所", "title": "7168\nリーン", "note": "", "x": 448, "y": 723 }
   ]
+
 
 
 
